@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             // 2. Chama o seu servidor local (porta 3000)
-            const response = await fetch('http://localhost:3000/analisar-humor', {
+            const response = await fetch('/api/humor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
