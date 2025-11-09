@@ -1,50 +1,63 @@
-// server.js (Versão Corrigida com Chamada REST Segura)
+// api/humor.js - Serverless Function para Vercel
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch'); // Precisamos instalar isso!
+const fetch = require('node-fetch'); // Necessário para a chamada REST
 
+// Configuração Inicial e Chave de API
 dotenv.config(); 
-
-// A chave AGORA É LIDA DE FORMA SEGURA do arquivo .env
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 if (!GEMINI_API_KEY) {
-    console.error("ERRO: Chave de API não encontrada. Crie um arquivo .env com GEMINI_API_KEY=SUA_CHAVE");
-    process.exit(1);
+    // Isso aparecerá nos logs do Vercel se a variável de ambiente não for configurada
+    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente.");
 }
 
 const app = express();
-const PORT = 3000;
 
-// Middleware
+// Middleware (Permite comunicação e processa JSON)
 app.use(bodyParser.json());
+
+// Adiciona cabeçalhos CORS (necessário, mesmo que o Vercel ajude)
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500"); // Permite apenas o Live Server
+    // Permite que qualquer origem (incluindo o próprio domínio Vercel) acesse
+    res.header("Access-Control-Allow-Origin", "*"); 
     res.header("Access-Control-Allow-Headers", "Content-Type");
     next();
 });
 
-// URL da API do Gemini 1.5 Flash (Ajustada para o Endpoint Padrão)
+// URL da API do Gemini 1.5 Flash
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-
-// Rota de API
-app.post('/analisar-humor', async (req, res) => {
+// Rota de API (Esta rota é chamada pelo seu frontend: /api/humor)
+app.post('/api/humor', async (req, res) => { // A rota deve ser '/api/humor' para corresponder ao fetch
     const { minerio, brent, vix, dolar } = req.body;
     
-    // O mesmo prompt de antes
+    // O Prompt da IA (Inclua as fórmulas e instruções para o formato HTML)
     const prompt = `
         Você é um assistente de Day Trade. Sua tarefa é calcular o "Indicador Ponderado de Humor da B3" e fornecer uma análise.
-        ... [Seu prompt completo aqui, omitido por brevidade] ...
-        ... [Certifique-se de incluir as instruções para retornar APENAS HTML] ...
-        
+
+        Use esta fórmula exata:
+        Humor B3 = (0.35 * ΔMinério) + (0.30 * ΔBrent) - (0.15 * ΔVIX) - (0.20 * ΔDólar/Real)
+
         Dados de entrada:
         Minério: ${minerio}%
         Brent: ${brent}%
         VIX: ${vix}%
         Dólar/Real: ${dolar}%
+
+        Sua resposta deve ser APENAS o código HTML para ser injetado em uma <div>.
+        A resposta deve seguir exatamente esta estrutura:
+        1. Um <h3> com o título "📈 Interpretação do Cenário".
+        2. Um <p> com o resultado numérico (Ex: "O Indicador Ponderado de Humor da B3 é +0.3855.")
+        3. Um <h3> com o título "Conclusão: [Sentimento]".
+        4. Um <p> com a descrição do sentimento (Ex: "Este é um resultado positivo moderado...").
+        5. Um <h3> com o título "Fatores de Análise".
+        6. Parágrafos <p> descrevendo os fatores de suporte e pressão.
+
+        Não inclua '<html>', '<body>' ou '´´´html´´´'. Apenas os elementos HTML (h3, p, etc.).
+        Seja direto e profissional.
     `;
     
     // Corpo da requisição para a API
@@ -72,6 +85,7 @@ app.post('/analisar-humor', async (req, res) => {
         // Verifica se a API retornou um erro (ex: 403, 404, 500)
         if (!response.ok || data.error) {
             console.error("Erro da API Gemini:", data.error || data);
+            // Retorna a mensagem de erro da API para o frontend
             return res.status(response.status || 500).json({ 
                 success: false, 
                 message: `Erro na API: ${data.error.message || 'Falha Desconhecida'}` 
@@ -90,7 +104,6 @@ app.post('/analisar-humor', async (req, res) => {
     }
 });
 
-// Inicia o Servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+// IMPORTANTE PARA VERCEL: Exporte a instância do 'app'
+// O Vercel usa essa exportação para criar a função Serverless
+module.exports = app;
