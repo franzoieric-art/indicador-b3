@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indicador de Humor B3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="container">
+        <h1>Indicador de Humor B3 📈</h1>
+        <p>Insira as variações percentuais (%) pré-mercado para calcular o sentimento de abertura.</p>
+
+        <form id="humor-form">
+            
+            <div class="input-group">
+                <label for="minerio">Minério de Ferro (FEF1!)</label>
+                <input type="number" id="minerio" step="0.01" placeholder="-0,33" required>
+            </div>
+
+            <div class="input-group">
+                <label for="brent">Petróleo Brent (UKOIL)</label>
+                <input type="number" id="brent" step="0.01" placeholder="0,40" required>
+            </div>
+
+            <div class="input-group">
+                <label for="vix">VIX (Índice do Medo)</label>
+                <input type="number" id="vix" step="0.01" placeholder="-2,10" required>
+            </div>
+
+            <div class="input-group">
+                <label for="dolar">Dólar/Real (USDBRL)</label>
+                <input type="number" id="dolar" step="0.01" placeholder="-0,33" required>
+            </div>
+
+            <button type="submit" id="submit-button">Analisar Humor</button>
+        </form>
+
+        <section id="resultado-container">
+            <div id="loader" class="hidden">
+                <div class="spinner"></div>
+                <p>Calculando...</p>
+            </div>
+            
+            <div id="resposta-ia"></div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
