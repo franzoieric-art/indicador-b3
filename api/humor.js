@@ -1,169 +1,101 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indicador de Humor B3</title>
-    <!-- Carrega Tailwind CSS para estilização rápida e responsiva -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-blue': '#3B82F6',
-                        'dark-bg': '#1F2937',
-                        'card-bg': '#374151',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Estilos globais para fundo escuro */
-        body {
-            background-color: #111827; /* Fundo bem escuro */
-            color: #F9FAFB;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        main {
-            flex-grow: 1;
-        }
-        /* Estilo para garantir que o placeholder seja visível e esmaecido */
-        input::placeholder {
-            color: #6B7280; /* text-gray-500 */
-        }
-    </style>
-</head>
-<body class="antialiased">
+const express = require('express');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+// Não é mais necessário importar fetch de forma dinâmica, o Vercel oferece nativamente.
 
-    <!-- Conteúdo Principal e Cartão -->
-    <main class="flex items-center justify-center p-4">
-        <div id="app-card" class="w-full max-w-md bg-card-bg p-8 rounded-xl shadow-2xl space-y-6">
-            <h1 class="text-3xl font-bold text-center mb-6 flex items-center justify-center gap-2">
-                Indicador de Humor B3 📈
-            </h1>
-            
-            <p class="text-center text-gray-300">
-                Insira as variações percentuais (%) pré-mercado para calcular o sentimento de abertura.
-            </p>
+dotenv.config(); 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
-            <!-- Formulário de Entrada -->
-            <div class="space-y-4">
-                <div>
-                    <label for="minerio" class="block text-sm font-medium text-gray-300">Minério de Ferro (FEF1)! (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
-                    <input type="number" step="0.01" id="minerio" value="0.00" placeholder="Ex: 0.35 ou -0.12" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
-                </div>
-                <div>
-                    <label for="brent" class="block text-sm font-medium text-gray-300">Petróleo Brent (UKOIL) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
-                    <input type="number" step="0.01" id="brent" value="0.00" placeholder="Ex: 1.20 ou -0.50" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
-                </div>
-                <div>
-                    <label for="vix" class="block text-sm font-medium text-gray-300">VIX (Índice do Medo) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
-                    <input type="number" step="0.01" id="vix" value="0.00" placeholder="Ex: -2.00 ou 1.50" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
-                </div>
-                <div>
-                    <label for="dolar" class="block text-sm font-medium text-gray-300">Dólar/Real (USDBRL) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
-                    <input type="number" step="0.01" id="dolar" value="0.00" placeholder="Ex: -0.20 ou 0.40" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
-                </div>
-            </div>
+if (!GEMINI_API_KEY) {
+    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente.");
+}
 
-            <!-- Botão de Ação -->
-            <button id="analyze-btn" onclick="callApiHumor()" class="w-full bg-primary-blue hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 focus:ring-offset-card-bg">
-                Analisar Humor
-            </button>
+const app = express();
+app.use(bodyParser.json());
 
-            <!-- Área de Resultados (Onde o HTML do Gemini será injetado) -->
-            <div id="result-container" class="mt-6 p-4 bg-dark-bg rounded-lg text-sm min-h-[50px]">
-                <p class="text-gray-400 text-center" id="initial-message">Insira os dados e clique em Analisar Humor.</p>
-                <!-- O HTML gerado pelo Gemini entra aqui -->
-            </div>
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*"); 
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    next();
+});
 
-            <!-- Área de Loading/Erro -->
-            <p id="status-message" class="text-center text-red-400 font-medium"></p>
-        </div>
-    </main>
+// Modelo estável e recomendado
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-    <!-- FOOTER (Rodapé) - Com o link para o seu site -->
-    <footer class="mt-auto py-4 text-center text-xs text-gray-500 border-t border-gray-800">
-        Um projeto totalmente <span class="font-bold text-gray-300">FREE</span> feito pela <a href="https://ricoplus.com.br" class="text-primary-blue hover:underline font-semibold" target="_blank" rel="noopener noreferrer">Rico Plus</a>
-    </footer>
+app.post('/api/humor', async (req, res) => {
+    // O fetch global é usado aqui diretamente, eliminando o erro de importação.
     
-    <script>
-        const resultContainer = document.getElementById('result-container');
-        const statusMessage = document.getElementById('status-message');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const initialMessage = document.getElementById('initial-message');
+    const { minerio, brent, vix, dolar } = req.body;
+    
+    // ATUALIZAÇÃO DO PROMPT: Pede para a IA adicionar classes CSS de cor no H3 da Conclusão
+    const prompt = `
+        Você é um assistente de Day Trade. Sua tarefa é calcular o "Indicador Ponderado de Humor da B3" e fornecer uma análise.
 
-        /**
-         * Simula o polyfill básico de URL para uso em ambiente de produção (Vercel) e local.
-         * Assume que a função serverless '/api/humor' existe na raiz do servidor.
-         */
-        function getApiUrl() {
-            // Em produção (Vercel), a URL é relativa: /api/humor
-            // Em desenvolvimento local (se estivesse rodando o Node.js), seria: http://localhost:3000/api/humor
-            return '/api/humor';
+        Use esta fórmula exata:
+        Humor B3 = (0.35 * ΔMinério) + (0.30 * ΔBrent) - (0.15 * ΔVIX) - (0.20 * ΔDólar/Real)
+
+        Dados de entrada:
+        Minério: ${minerio}%
+        Brent: ${brent}%
+        VIX: ${vix}%
+        Dólar/Real: ${dolar}%
+
+        Sua resposta deve ser APENAS o código HTML para ser injetado em uma <div>.
+        A resposta deve seguir exatamente esta estrutura:
+        1. Um <h3 class="result-title"> com o título "📈 Interpretação do Cenário".
+        2. Um <p> com o resultado numérico (Ex: "O Indicador Ponderado de Humor da B3 é +0.3855.")
+        3. Um <h3 class="result-title"> com o título "Conclusão: [Sentimento]"
+           - A classe CSS no H3 da Conclusão deve ser:
+           - text-green-400 (se muito POSITIVO)
+           - text-green-500 (se POSITIVO)
+           - text-yellow-400 (se NEUTRO/MISTO)
+           - text-red-500 (se NEGATIVO)
+           - text-red-400 (se muito NEGATIVO)
+           (Ex: <h3 class="result-title text-green-500">Conclusão: Sentimento Positivo Moderado</h3>)
+        4. Um <p> com a descrição do sentimento (Ex: "Este é um resultado positivo moderado...").
+        5. Um <h3 class="result-title"> com o título "Fatores de Análise".
+        6. Parágrafos <p> descrevendo os fatores de suporte e pressão.
+
+        Não inclua '<html>', '<body>' ou '´´´html´´´'. Apenas os elementos HTML (h3, p, etc.).
+        Seja direto e profissional.
+    `;
+    
+    const requestBody = {
+        contents: [{
+            parts: [{ text: prompt }]
+        }],
+        generationConfig: { 
+            temperature: 0.3
         }
+    };
 
-        /**
-         * Função principal para chamar a Serverless Function do Vercel.
-         */
-        async function callApiHumor() {
-            // 1. Limpa status e exibe loading
-            statusMessage.textContent = '';
-            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Aguardando análise do Gemini...</p>';
-            analyzeBtn.disabled = true;
+    try {
+        const response = await fetch(`${API_URL}?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
 
-            const inputs = {
-                minerio: document.getElementById("minerio").value,
-                brent: document.getElementById("brent").value,
-                vix: document.getElementById("vix").value,
-                dolar: document.getElementById("dolar").value
-            };
-
-            // 2. Chama a API do Vercel
-            try {
-                const response = await fetch(getApiUrl(), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(inputs)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || data.success === false) {
-                    // Trata erros da Serverless Function (incluindo erros da API Gemini repassados)
-                    const errorMessage = data.message || "Falha desconhecida no servidor.";
-                    statusMessage.textContent = `Falha no servidor: ${errorMessage}`;
-                    resultContainer.innerHTML = '<p class="text-center text-gray-400">Tente novamente.</p>';
-                    return;
-                }
-                
-                // 3. Sucesso: Insere o HTML gerado na área de resultados
-                resultContainer.innerHTML = data.html;
-                initialMessage.style.display = 'none';
-
-            } catch (error) {
-                console.error("Erro na comunicação com o servidor:", error);
-                statusMessage.textContent = "Erro de rede ou falha ao conectar com o servidor.";
-                resultContainer.innerHTML = '<p class="text-center text-gray-400">Verifique sua conexão.</p>';
-            } finally {
-                // 4. Finaliza e habilita o botão
-                analyzeBtn.disabled = false;
-            }
+        const data = await response.json();
+        
+        if (!response.ok || data.error) {
+            console.error("Erro da API Gemini:", data.error || data);
+            return res.status(response.status || 500).json({ 
+                success: false, 
+                message: `Erro na API: ${data.error ? data.error.message : 'Falha Desconhecida'}` 
+            });
         }
-    </script>
-</body>
-</html>
+        
+        const htmlResponse = data.candidates[0].content.parts[0].text;
+        
+        res.json({ success: true, html: htmlResponse });
+        
+    } catch (error) {
+        console.error("Erro na comunicação com a API:", error);
+        res.status(500).json({ success: false, message: "Erro interno do servidor ao chamar a API." });
+    }
+});
+
+module.exports = app;
