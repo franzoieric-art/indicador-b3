@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indicador de Humor B3</title>
+    <!-- Adicionando o Favicon usando um emoji -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
     <!-- Carrega Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -39,6 +41,13 @@
         input::placeholder {
             color: #6B7280; /* text-gray-500 */
         }
+        /* Estilos para a resposta da IA */
+        .result-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -58,28 +67,24 @@
             <div class="space-y-4">
                 <div>
                     <label for="minerio" class="block text-sm font-medium text-gray-300">Minério de Ferro (FEF1)! (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
                     <input type="number" step="0.01" id="minerio" value="0.00" placeholder="Ex: 0.35 ou -0.12" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
                 </div>
                 <div>
                     <label for="brent" class="block text-sm font-medium text-gray-300">Petróleo Brent (UKOIL) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
                     <input type="number" step="0.01" id="brent" value="0.00" placeholder="Ex: 1.20 ou -0.50" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
                 </div>
                 <div>
                     <label for="vix" class="block text-sm font-medium text-gray-300">VIX (Índice do Medo) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
                     <input type="number" step="0.01" id="vix" value="0.00" placeholder="Ex: -2.00 ou 1.50" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
                 </div>
                 <div>
                     <label for="dolar" class="block text-sm font-medium text-gray-300">Dólar/Real (USDBRL) (%)</label>
-                    <!-- Alterado value para "0.00" e adicionado placeholder -->
                     <input type="number" step="0.01" id="dolar" value="0.00" placeholder="Ex: -0.20 ou 0.40" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
                 </div>
             </div>
 
             <!-- Botão de Ação -->
-            <button id="analyze-btn" onclick="callApiHumor()" class="w-full bg-primary-blue hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 focus:ring-offset-card-bg">
+            <button id="analyze-btn" onclick="handleAnalysis()" class="w-full bg-primary-blue hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-blue focus:ring-offset-2 focus:ring-offset-card-bg">
                 Analisar Humor
             </button>
 
@@ -94,7 +99,7 @@
         </div>
     </main>
 
-    <!-- FOOTER (Rodapé) - Com o link para o seu site -->
+    <!-- FOOTER (Rodapé) -->
     <footer class="mt-auto py-4 text-center text-xs text-gray-500 border-t border-gray-800">
         Um projeto totalmente <span class="font-bold text-gray-300">FREE</span> feito pela <a href="https://ricoplus.com.br" class="text-primary-blue hover:underline font-semibold" target="_blank" rel="noopener noreferrer">Rico Plus</a>
     </footer>
@@ -107,29 +112,68 @@
 
         /**
          * Simula o polyfill básico de URL para uso em ambiente de produção (Vercel) e local.
-         * Assume que a função serverless '/api/humor' existe na raiz do servidor.
          */
         function getApiUrl() {
-            // Em produção (Vercel), a URL é relativa: /api/humor
-            // Em desenvolvimento local (se estivesse rodando o Node.js), seria: http://localhost:3000/api/humor
             return '/api/humor';
         }
 
         /**
-         * Função principal para chamar a Serverless Function do Vercel.
+         * ⚠️ Nova função de validação de inputs
+         * Garante que os campos não estejam vazios ou com o valor default '0.00'.
          */
-        async function callApiHumor() {
-            // 1. Limpa status e exibe loading
-            statusMessage.textContent = '';
-            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Aguardando análise do Gemini...</p>';
-            analyzeBtn.disabled = true;
+        function validateInputs(inputs) {
+            let isValid = true;
+            for (const key in inputs) {
+                const value = document.getElementById(key).value;
+                if (value === "" || parseFloat(value) === 0) {
+                    // Exibir mensagem de erro visual
+                    document.getElementById(key).classList.add('border-red-500');
+                    document.getElementById(key).classList.remove('border-gray-600');
+                    isValid = false;
+                } else {
+                    // Remover erro visual se corrigido
+                    document.getElementById(key).classList.remove('border-red-500');
+                    document.getElementById(key).classList.add('border-gray-600');
+                }
+            }
+            if (!isValid) {
+                statusMessage.textContent = "⚠️ Por favor, insira um valor válido (diferente de 0.00) em todos os campos para a análise.";
+            } else {
+                statusMessage.textContent = "";
+            }
+            return isValid;
+        }
 
+        /**
+         * Função que gerencia o fluxo de análise (validação + chamada API)
+         */
+        function handleAnalysis() {
             const inputs = {
                 minerio: document.getElementById("minerio").value,
                 brent: document.getElementById("brent").value,
                 vix: document.getElementById("vix").value,
                 dolar: document.getElementById("dolar").value
             };
+
+            // 1. Validação
+            if (!validateInputs(inputs)) {
+                return; // Para a execução se a validação falhar
+            }
+            
+            // 2. Chama a API se a validação passar
+            callApiHumor(inputs);
+        }
+
+
+        /**
+         * Função principal para chamar a Serverless Function do Vercel.
+         */
+        async function callApiHumor(inputs) {
+            
+            // 1. Limpa status e exibe loading
+            statusMessage.textContent = '';
+            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Aguardando análise do Gemini...</p>';
+            analyzeBtn.disabled = true;
 
             // 2. Chama a API do Vercel
             try {
@@ -152,6 +196,7 @@
                 }
                 
                 // 3. Sucesso: Insere o HTML gerado na área de resultados
+                // O HTML gerado já deve conter as classes de cor nos títulos (text-green-xxx, text-red-xxx)
                 resultContainer.innerHTML = data.html;
                 initialMessage.style.display = 'none';
 
