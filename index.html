@@ -118,26 +118,31 @@
         }
 
         /**
-         * ⚠️ Nova função de validação de inputs
-         * Garante que os campos não estejam vazios ou com o valor default '0.00'.
+         * ⚠️ Função de validação de inputs ATUALIZADA
+         * Permite 0.00, mas impede campos vazios ou não numéricos.
          */
         function validateInputs(inputs) {
             let isValid = true;
             for (const key in inputs) {
-                const value = document.getElementById(key).value;
-                if (value === "" || parseFloat(value) === 0) {
+                const inputElement = document.getElementById(key);
+                const value = inputElement.value.trim(); // Usa trim() para ignorar espaços
+
+                // CORREÇÃO AQUI: Apenas verifica se está vazio ou NÃO é um número válido.
+                // O valor zero (0) é agora permitido!
+                if (value === "" || isNaN(parseFloat(value))) { 
                     // Exibir mensagem de erro visual
-                    document.getElementById(key).classList.add('border-red-500');
-                    document.getElementById(key).classList.remove('border-gray-600');
+                    inputElement.classList.add('border-red-500');
+                    inputElement.classList.remove('border-gray-600');
                     isValid = false;
                 } else {
                     // Remover erro visual se corrigido
-                    document.getElementById(key).classList.remove('border-red-500');
-                    document.getElementById(key).classList.add('border-gray-600');
+                    inputElement.classList.remove('border-red-500');
+                    inputElement.classList.add('border-gray-600');
                 }
             }
             if (!isValid) {
-                statusMessage.textContent = "⚠️ Por favor, insira um valor válido (diferente de 0.00) em todos os campos para a análise.";
+                // Mensagem de erro atualizada
+                statusMessage.textContent = "⚠️ Por favor, preencha todos os campos com valores válidos. (Zero é permitido, vazio não).";
             } else {
                 statusMessage.textContent = "";
             }
