@@ -1,19 +1,15 @@
 {
-  "name": "calculos",
+  "name": "indicador-b3-vercel",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "description": "Indicador de Humor da B3 com Gemini API",
   "dependencies": {
-    "@google/genai": "^1.29.0",
-    "body-parser": "^2.2.0",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "2.6.7",
+    "express": "4.17.1",
+    "body-parser": "1.19.0",
+    "dotenv": "8.2.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
   }
 }

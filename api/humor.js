@@ -1,11 +1,13 @@
-// api/humor.js - Serverless Function para Vercel
+// api/humor.js - Serverless Function para Vercel (FINALMENTE CORRIGIDO PARA COMPATIBILIDADE)
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch'); // Necessário para a chamada REST
+// 🛑 IMPORTANTE: Removemos 'const fetch = require('node-fetch');' para evitar o erro ERR_REQUIRE_ESM
+let fetch; // Declaramos a variável fetch aqui, para ser preenchida de forma assíncrona
 
 // Configuração Inicial e Chave de API
+// No Vercel, dotenv.config() é ignorado, mas mantemos para testes locais
 dotenv.config(); 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
@@ -31,7 +33,13 @@ app.use((req, res, next) => {
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 // Rota de API (Esta rota é chamada pelo seu frontend: /api/humor)
-app.post('/api/humor', async (req, res) => { // A rota deve ser '/api/humor' para corresponder ao fetch
+app.post('/api/humor', async (req, res) => {
+    // 🛑 SOLUÇÃO FINAL DO ERRO ERR_REQUIRE_ESM:
+    // Carrega node-fetch de forma assíncrona (import() dinâmico)
+    if (!fetch) {
+        fetch = (await import('node-fetch')).default;
+    }
+    
     const { minerio, brent, vix, dolar } = req.body;
     
     // O Prompt da IA (Inclua as fórmulas e instruções para o formato HTML)
@@ -105,5 +113,4 @@ app.post('/api/humor', async (req, res) => { // A rota deve ser '/api/humor' par
 });
 
 // IMPORTANTE PARA VERCEL: Exporte a instância do 'app'
-// O Vercel usa essa exportação para criar a função Serverless
 module.exports = app;
