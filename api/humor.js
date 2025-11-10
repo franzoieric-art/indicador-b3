@@ -1,19 +1,17 @@
-// api/humor.js - Serverless Function para Vercel (FINALMENTE CORRIGIDO PARA COMPATIBILIDADE)
+// api/humor.js - Serverless Function para Vercel (FINAL E CORRIGIDO)
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-// 🛑 IMPORTANTE: Removemos 'const fetch = require('node-fetch');' para evitar o erro ERR_REQUIRE_ESM
-let fetch; // Declaramos a variável fetch aqui, para ser preenchida de forma assíncrona
+// Variável fetch declarada, que será carregada de forma assíncrona (solução para ERR_REQUIRE_ESM)
+let fetch; 
 
 // Configuração Inicial e Chave de API
-// No Vercel, dotenv.config() é ignorado, mas mantemos para testes locais
 dotenv.config(); 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 if (!GEMINI_API_KEY) {
-    // Isso aparecerá nos logs do Vercel se a variável de ambiente não for configurada
-    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente.");
+    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente. Configure a variável no Vercel.");
 }
 
 const app = express();
@@ -21,9 +19,8 @@ const app = express();
 // Middleware (Permite comunicação e processa JSON)
 app.use(bodyParser.json());
 
-// Adiciona cabeçalhos CORS (necessário, mesmo que o Vercel ajude)
+// Adiciona cabeçalhos CORS
 app.use((req, res, next) => {
-    // Permite que qualquer origem (incluindo o próprio domínio Vercel) acesse
     res.header("Access-Control-Allow-Origin", "*"); 
     res.header("Access-Control-Allow-Headers", "Content-Type");
     next();
@@ -32,17 +29,21 @@ app.use((req, res, next) => {
 // URL da API do Gemini 1.5 Flash
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-// Rota de API (Esta rota é chamada pelo seu frontend: /api/humor)
+// Rota de API (É o ponto de entrada da Serverless Function)
 app.post('/api/humor', async (req, res) => {
-    // 🛑 SOLUÇÃO FINAL DO ERRO ERR_REQUIRE_ESM:
     // Carrega node-fetch de forma assíncrona (import() dinâmico)
     if (!fetch) {
-        fetch = (await import('node-fetch')).default;
+        try {
+            fetch = (await import('node-fetch')).default;
+        } catch (e) {
+            console.error("Falha ao carregar node-fetch de forma assíncrona:", e);
+            return res.status(500).json({ success: false, message: "Erro de inicialização do módulo de rede no servidor." });
+        }
     }
     
     const { minerio, brent, vix, dolar } = req.body;
     
-    // O Prompt da IA (Inclua as fórmulas e instruções para o formato HTML)
+    // O Prompt da IA
     const prompt = `
         Você é um assistente de Day Trade. Sua tarefa é calcular o "Indicador Ponderado de Humor da B3" e fornecer uma análise.
 
@@ -73,7 +74,8 @@ app.post('/api/humor', async (req, res) => {
         contents: [{
             parts: [{ text: prompt }]
         }],
-        config: {
+        // ✅ CORREÇÃO FINAL AQUI: Usa 'generationConfig' em vez de 'config'
+        generationConfig: { 
             temperature: 0.3
         }
     };
@@ -96,7 +98,7 @@ app.post('/api/humor', async (req, res) => {
             // Retorna a mensagem de erro da API para o frontend
             return res.status(response.status || 500).json({ 
                 success: false, 
-                message: `Erro na API: ${data.error.message || 'Falha Desconhecida'}` 
+                message: `Erro na API: ${data.error ? data.error.message : 'Falha Desconhecida'}` 
             });
         }
         
@@ -112,5 +114,5 @@ app.post('/api/humor', async (req, res) => {
     }
 });
 
-// IMPORTANTE PARA VERCEL: Exporte a instância do 'app'
+// EXPORTAÇÃO ESSENCIAL PARA O VERCEL
 module.exports = app;
