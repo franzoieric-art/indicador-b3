@@ -1,37 +1,28 @@
-// api/humor.js - Serverless Function para Vercel (FINAL E CORRIGIDO)
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-// Variável fetch declarada, que será carregada de forma assíncrona (solução para ERR_REQUIRE_ESM)
 let fetch; 
 
-// Configuração Inicial e Chave de API
 dotenv.config(); 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
 if (!GEMINI_API_KEY) {
-    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente. Configure a variável no Vercel.");
+    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente.");
 }
 
 const app = express();
-
-// Middleware (Permite comunicação e processa JSON)
 app.use(bodyParser.json());
 
-// Adiciona cabeçalhos CORS
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*"); 
     res.header("Access-Control-Allow-Headers", "Content-Type");
     next();
 });
 
-// URL da API do Gemini 1.5 Flash
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+// ✅ CORREÇÃO FINAL: Usamos o nome de modelo estável gemini-2.5-flash
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-// Rota de API (É o ponto de entrada da Serverless Function)
 app.post('/api/humor', async (req, res) => {
-    // Carrega node-fetch de forma assíncrona (import() dinâmico)
     if (!fetch) {
         try {
             fetch = (await import('node-fetch')).default;
@@ -43,7 +34,6 @@ app.post('/api/humor', async (req, res) => {
     
     const { minerio, brent, vix, dolar } = req.body;
     
-    // O Prompt da IA
     const prompt = `
         Você é um assistente de Day Trade. Sua tarefa é calcular o "Indicador Ponderado de Humor da B3" e fornecer uma análise.
 
@@ -69,19 +59,16 @@ app.post('/api/humor', async (req, res) => {
         Seja direto e profissional.
     `;
     
-    // Corpo da requisição para a API
     const requestBody = {
         contents: [{
             parts: [{ text: prompt }]
         }],
-        // ✅ CORREÇÃO FINAL AQUI: Usa 'generationConfig' em vez de 'config'
         generationConfig: { 
             temperature: 0.3
         }
     };
 
     try {
-        // Fazendo a chamada fetch segura no servidor
         const response = await fetch(`${API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: {
@@ -92,20 +79,16 @@ app.post('/api/humor', async (req, res) => {
 
         const data = await response.json();
         
-        // Verifica se a API retornou um erro (ex: 403, 404, 500)
         if (!response.ok || data.error) {
             console.error("Erro da API Gemini:", data.error || data);
-            // Retorna a mensagem de erro da API para o frontend
             return res.status(response.status || 500).json({ 
                 success: false, 
                 message: `Erro na API: ${data.error ? data.error.message : 'Falha Desconhecida'}` 
             });
         }
         
-        // Extrai o HTML da resposta
         const htmlResponse = data.candidates[0].content.parts[0].text;
         
-        // Envia a resposta HTML de volta para o navegador
         res.json({ success: true, html: htmlResponse });
         
     } catch (error) {
@@ -114,5 +97,4 @@ app.post('/api/humor', async (req, res) => {
     }
 });
 
-// EXPORTAÇÃO ESSENCIAL PARA O VERCEL
 module.exports = app;
