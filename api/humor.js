@@ -1,101 +1,55 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-// Não é mais necessário importar fetch de forma dinâmica, o Vercel oferece nativamente.
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-dotenv.config(); 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-if (!GEMINI_API_KEY) {
-    console.error("ERRO: Chave de API GEMINI_API_KEY não encontrada nas variáveis de ambiente.");
-}
-
-const app = express();
-app.use(bodyParser.json());
-
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*"); 
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-    next();
-});
-
-// Modelo estável e recomendado
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-
-app.post('/api/humor', async (req, res) => {
-    // O fetch global é usado aqui diretamente, eliminando o erro de importação.
-    
-    const { minerio, brent, vix, dolar } = req.body;
-    
-    // ATUALIZAÇÃO DO PROMPT: Pede para a IA adicionar classes CSS de cor no H3 da Conclusão
-    const prompt = `
-        Você é um assistente de Day Trade. Sua tarefa é calcular o "Indicador Ponderado de Humor da B3" e fornecer uma análise.
-
-        Use esta fórmula exata:
-        Humor B3 = (0.35 * ΔMinério) + (0.30 * ΔBrent) - (0.15 * ΔVIX) - (0.20 * ΔDólar/Real)
-
-        Dados de entrada:
-        Minério: ${minerio}%
-        Brent: ${brent}%
-        VIX: ${vix}%
-        Dólar/Real: ${dolar}%
-
-        Sua resposta deve ser APENAS o código HTML para ser injetado em uma <div>.
-        A resposta deve seguir exatamente esta estrutura:
-        1. Um <h3 class="result-title"> com o título "📈 Interpretação do Cenário".
-        2. Um <p> com o resultado numérico (Ex: "O Indicador Ponderado de Humor da B3 é +0.3855.")
-        3. Um <h3 class="result-title"> com o título "Conclusão: [Sentimento]"
-           - A classe CSS no H3 da Conclusão deve ser:
-           - text-green-400 (se muito POSITIVO)
-           - text-green-500 (se POSITIVO)
-           - text-yellow-400 (se NEUTRO/MISTO)
-           - text-red-500 (se NEGATIVO)
-           - text-red-400 (se muito NEGATIVO)
-           (Ex: <h3 class="result-title text-green-500">Conclusão: Sentimento Positivo Moderado</h3>)
-        4. Um <p> com a descrição do sentimento (Ex: "Este é um resultado positivo moderado...").
-        5. Um <h3 class="result-title"> com o título "Fatores de Análise".
-        6. Parágrafos <p> descrevendo os fatores de suporte e pressão.
-
-        Não inclua '<html>', '<body>' ou '´´´html´´´'. Apenas os elementos HTML (h3, p, etc.).
-        Seja direto e profissional.
-    `;
-    
-    const requestBody = {
-        contents: [{
-            parts: [{ text: prompt }]
-        }],
-        generationConfig: { 
-            temperature: 0.3
-        }
-    };
+    if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+    if (req.method !== 'POST') { return res.status(405).json({ error: 'Method Not Allowed' }); }
 
     try {
-        const response = await fetch(`${API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
+        // RECEBENDO OS 5 INDICADORES
+        const { minerio, brent, vix, dxy, dolar } = req.body;
 
-        const data = await response.json();
-        
-        if (!response.ok || data.error) {
-            console.error("Erro da API Gemini:", data.error || data);
-            return res.status(response.status || 500).json({ 
-                success: false, 
-                message: `Erro na API: ${data.error ? data.error.message : 'Falha Desconhecida'}` 
-            });
+        if ([minerio, brent, vix, dxy, dolar].includes(undefined)) {
+            return res.status(400).json({ success: false, message: "Dados incompletos." });
         }
-        
-        const htmlResponse = data.candidates[0].content.parts[0].text;
-        
-        res.json({ success: true, html: htmlResponse });
-        
-    } catch (error) {
-        console.error("Erro na comunicação com a API:", error);
-        res.status(500).json({ success: false, message: "Erro interno do servidor ao chamar a API." });
-    }
-});
 
-module.exports = app;
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        // PROMPT CALIBRADO PARA COMPARAR DXY x REAL
+        const prompt = `
+        Atue como analista sênior de B3. Analise o "Humor de Abertura" com estes dados:
+        
+        - Minério de Ferro: ${minerio}%
+        - Petróleo Brent: ${brent}%
+        - VIX (Medo Global): ${vix}%
+        - DXY (Dólar Global): ${dxy}%
+        - USD/BRL (Dólar vs Real): ${dolar}%
+
+        **Regras de Interpretação Cruzada:**
+        1. **DXY vs USD/BRL:**
+           - Se ambos sobem: Pressão externa forte, ruim para a bolsa.
+           - Se DXY cai e USD/BRL sobe: Risco fiscal ou ruído interno no Brasil (descolamento negativo).
+           - Se DXY sobe e USD/BRL cai: Resiliência do Real, entrada de fluxo (positivo).
+        2. **Commodities:** Minério/Brent ditam Vale/Petrobras.
+
+        **Saída:**
+        Resumo curto (máx 4 linhas), direto e levemente informal.
+        Use HTML simples (<strong>, <span class="text-green-400">, <span class="text-red-400">) para destacar.
+        Diga se a abertura tende a ser de Alta, Baixa ou Mista.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        return res.status(200).json({ success: true, html: responseText });
+
+    } catch (error) {
+        console.error("Erro API:", error);
+        return res.status(500).json({ success: false, message: "Erro interno." });
+    }
+}
