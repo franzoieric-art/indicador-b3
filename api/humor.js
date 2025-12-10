@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    // Cabeçalhos para evitar erro de CORS
+    // --- Configuração de CORS (Essencial para não dar erro no navegador) ---
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
-    // Responde rápido para requisições de verificação (OPTIONS)
+    // Responde rápido para pre-flight requests
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
@@ -22,42 +22,68 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. RECEBENDO E VERIFICANDO OS DADOS
+        // 1. RECEBENDO DADOS DO FRONT-END
         const { minerio, brent, vix, dxy, dolar } = req.body;
 
-        console.log("Dados recebidos:", { minerio, brent, vix, dxy, dolar });
+        console.log("Recebido:", { minerio, brent, vix, dxy, dolar });
 
-        // Verifica se algum dado está faltando
+        // Validação: Garante que nada veio nulo
         if (minerio == null || brent == null || vix == null || dxy == null || dolar == null) {
             return res.status(400).json({ 
                 success: false, 
-                message: "Dados incompletos recebidos pela API." 
+                message: "Dados incompletos. Preencha todos os campos." 
             });
         }
 
-        // 2. CONFIGURANDO A IA
+        // 2. INICIALIZANDO O GEMINI
         if (!process.env.GEMINI_API_KEY) {
-            throw new Error("A chave API do Gemini (GEMINI_API_KEY) não está configurada na Vercel.");
+            throw new Error("API Key não configurada no ambiente Vercel.");
         }
         
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        // --- CORREÇÃO AQUI ---
-        // Tentando conectar diretamente na versão 2.5 Flash conforme sua indicação.
-        // Se este nome exato falhar, tente "gemini-2.0-flash" ou apenas "gemini-pro" como fallback.
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+        // --- AQUI ESTAVA O ERRO ---
+        // Usamos a string oficial estável. Com o package.json atualizado, isso VAI funcionar.
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        // 3. CRIANDO O PROMPT
+        // 3. O PROMPT (CÉREBRO)
         const prompt = `
-        Atue como um analista de mercado financeiro sênior especializado em B3 (Brasil).
+        Você é um analista de mercado financeiro sênior (Brasil/B3).
         
-        Analise o "Humor de Abertura do Mercado" com base nestes indicadores pré-mercado:
-        
+        Dados de Abertura:
         - Minério de Ferro: ${minerio}%
         - Petróleo Brent: ${brent}%
-        - VIX (Medo Global): ${vix}%
-        - Índice DXY (Dólar Global): ${dxy}%
-        - USD/BRL (Dólar vs Real): ${dolar}%
+        - VIX (Medo): ${vix}%
+        - DXY (Dólar Global): ${dxy}%
+        - USD/BRL (Dólar/Real): ${dolar}%
 
-        **Regras de Interpretação Cruzada:**
-        1. **DXY vs USD/
+        Análise Técnica Cruzada:
+        1. DXY e USD/BRL subindo juntos = Aversão a risco (Ruim para Ibovespa).
+        2. DXY caindo e USD/BRL subindo = Ruído fiscal interno (Ruim).
+        3. DXY subindo e USD/BRL caindo = Entrada de fluxo estrangeiro (Bom).
+        4. Minério e Brent impactam diretamente Vale e Petrobras.
+
+        Gere um resumo curto (4 linhas), tom direto e profissional.
+        Use HTML (<strong>, <span class="text-green-400">, <span class="text-red-400">) para colorir altas e baixas.
+        Finalize com: "Viés de Abertura: [Alta/Baixa/Neutro]".
+        `;
+
+        // 4. GERANDO
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        return res.status(200).json({
+            success: true,
+            html: responseText
+        });
+
+    } catch (error) {
+        console.error("Erro API:", error);
+        // Retorna erro 500 com detalhes para facilitar o debug
+        return res.status(500).json({ 
+            success: false, 
+            message: "Erro ao processar IA. Verifique Logs.",
+            details: error.message 
+        });
+    }
+}
