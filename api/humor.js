@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    // --- Configuração de CORS (Essencial para não dar erro no navegador) ---
+    // 1. Configuração de CORS (Permissões de acesso)
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -10,65 +10,63 @@ export default async function handler(req, res) {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
-    // Responde rápido para pre-flight requests
+    // Responde rápido para verificação do navegador
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
-    // Aceita apenas POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     try {
-        // 1. RECEBENDO DADOS DO FRONT-END
+        // 2. Recebendo os 5 indicadores
         const { minerio, brent, vix, dxy, dolar } = req.body;
 
         console.log("Recebido:", { minerio, brent, vix, dxy, dolar });
 
-        // Validação: Garante que nada veio nulo
+        // Validação: Garante que os dados chegaram (mesmo que sejam 0)
         if (minerio == null || brent == null || vix == null || dxy == null || dolar == null) {
             return res.status(400).json({ 
                 success: false, 
-                message: "Dados incompletos. Preencha todos os campos." 
+                message: "Dados incompletos recebidos pela API." 
             });
         }
 
-        // 2. INICIALIZANDO O GEMINI
+        // 3. Inicializando a IA
         if (!process.env.GEMINI_API_KEY) {
-            throw new Error("API Key não configurada no ambiente Vercel.");
+            throw new Error("Chave API não configurada.");
         }
         
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        // --- AQUI ESTAVA O ERRO ---
-        // Usamos a string oficial estável. Com o package.json atualizado, isso VAI funcionar.
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // --- A SOLUÇÃO ESTÁ AQUI ---
+        // Usamos "gemini-pro". Ele redireciona automaticamente para o modelo estável ativo.
+        // Isso evita o erro 404 de modelos específicos como flash/1.5/2.5.
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-        // 3. O PROMPT (CÉREBRO)
+        // 4. Prompt (Cérebro da Análise)
         const prompt = `
-        Você é um analista de mercado financeiro sênior (Brasil/B3).
-        
-        Dados de Abertura:
-        - Minério de Ferro: ${minerio}%
-        - Petróleo Brent: ${brent}%
-        - VIX (Medo): ${vix}%
-        - DXY (Dólar Global): ${dxy}%
-        - USD/BRL (Dólar/Real): ${dolar}%
+        Atue como analista de mercado financeiro (B3).
+        Dados pré-mercado:
+        - Minério: ${minerio}%
+        - Brent: ${brent}%
+        - VIX: ${vix}%
+        - DXY: ${dxy}%
+        - USD/BRL: ${dolar}%
 
-        Análise Técnica Cruzada:
-        1. DXY e USD/BRL subindo juntos = Aversão a risco (Ruim para Ibovespa).
-        2. DXY caindo e USD/BRL subindo = Ruído fiscal interno (Ruim).
-        3. DXY subindo e USD/BRL caindo = Entrada de fluxo estrangeiro (Bom).
-        4. Minério e Brent impactam diretamente Vale e Petrobras.
+        Regras de Bolso:
+        1. DXY sobe + Dolar cai = Fluxo estrangeiro entrando (Bom).
+        2. DXY sobe + Dolar sobe = Aversão a risco global (Ruim).
+        3. DXY cai + Dolar sobe = Risco Brasil (Fiscal/Político).
+        4. Minério dita Vale; Brent dita Petrobras.
 
-        Gere um resumo curto (4 linhas), tom direto e profissional.
-        Use HTML (<strong>, <span class="text-green-400">, <span class="text-red-400">) para colorir altas e baixas.
-        Finalize com: "Viés de Abertura: [Alta/Baixa/Neutro]".
+        Responda em 4 linhas máx.
+        Use HTML (<strong>, <span class="text-green-400">, <span class="text-red-400">) para destacar.
+        Finalize: "Viés: [Alta/Baixa/Neutro]".
         `;
 
-        // 4. GERANDO
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
@@ -79,10 +77,10 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Erro API:", error);
-        // Retorna erro 500 com detalhes para facilitar o debug
+        // Retorna erro 500 com a mensagem clara
         return res.status(500).json({ 
             success: false, 
-            message: "Erro ao processar IA. Verifique Logs.",
+            message: "Erro ao gerar análise.",
             details: error.message 
         });
     }
