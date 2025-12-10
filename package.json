@@ -1,15 +1,15 @@
 {
-  "name": "indicador-b3-vercel",
+  "name": "indicador-b3",
   "version": "1.0.0",
-  "description": "Indicador de Humor da B3 com Gemini API",
-  "dependencies": {
-    "node-fetch": "2.6.7",
-    "express": "4.17.1",
-    "body-parser": "1.19.0",
-    "dotenv": "8.2.0"
-  },
-  "main": "index.js",
+  "description": "Indicador de Humor do Mercado B3",
+  "main": "api/humor.js",
   "scripts": {
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.1.3"
   }
 }
