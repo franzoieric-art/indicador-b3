@@ -22,17 +22,17 @@
         input::placeholder { color: #6B7280; }
         .result-title { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
         
-        /* Estilo para a barra de loading (Tailwind não tem animação de barra nativa) */
+        /* Estilo para a barra de loading */
         .loading-bar {
             height: 4px;
-            background-color: #6B7280; /* Cor de fundo */
+            background-color: #6B7280;
             border-radius: 2px;
             overflow: hidden;
         }
         .loading-bar-fill {
             height: 100%;
             width: 100%;
-            background-color: #3B82F6; /* Cor primária */
+            background-color: #3B82F6;
             animation: pulse-fill 1.5s infinite ease-out;
         }
         @keyframes pulse-fill {
@@ -68,6 +68,10 @@
                     <input type="number" step="0.01" id="vix" value="0.00" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
                 </div>
                 
+                <div>
+                    <label for="spx" class="block text-sm font-medium text-gray-300">S&P 500 Futuro (SPX) (%)</label>
+                    <input type="number" step="0.01" id="spx" value="0.00" placeholder="Ex: 0.50 ou -0.20" class="mt-1 block w-full px-3 py-2 bg-dark-bg border border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue transition">
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="dxy" class="block text-sm font-medium text-gray-300">DXY (Global) (%)</label>
@@ -124,10 +128,12 @@
         }
 
         function handleAnalysis() {
+            // CAPTURANDO OS 6 DADOS
             const inputs = {
                 minerio: document.getElementById("minerio").value,
                 brent: document.getElementById("brent").value,
                 vix: document.getElementById("vix").value,
+                spx: document.getElementById("spx").value, // NOVO CAMPO
                 dxy: document.getElementById("dxy").value,
                 dolar: document.getElementById("dolar").value
             };
@@ -139,7 +145,7 @@
         async function callApiHumor(inputs) {
             statusMessage.textContent = '';
             
-            // --- NOVA MENSAGEM DE LOADING E BARRA ---
+            // Mensagem de loading aprimorada
             resultContainer.innerHTML = `
                 <div class="space-y-3">
                     <p class="text-center text-gray-400 font-medium animate-pulse">
@@ -150,8 +156,6 @@
                     </div>
                 </div>
             `;
-            // ----------------------------------------
-
             analyzeBtn.disabled = true;
 
             try {
@@ -163,7 +167,6 @@
                 
                 const data = await response.json();
                 
-                // Trata erro 500 ou sucesso: false
                 if (!response.ok || data.success === false) {
                     throw new Error(data.details || data.message || "Falha na análise. Tente novamente.");
                 }
