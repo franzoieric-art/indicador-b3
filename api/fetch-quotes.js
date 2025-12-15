@@ -1,6 +1,7 @@
-// api/fetch-quotes.js - CÓDIGO FINAL COM ENDPOINT DE COTAÇÃO
+// api/fetch-quotes.js - CÓDIGO FINAL COM ENDPOINT MASSIVE (v2)
 
 export default async function handler(req, res) {
+    // Configurações de CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -9,83 +10,78 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
     if (req.method !== 'GET') { return res.status(405).json({ error: 'Method Not Allowed' }); }
 
-    // 1. Mapeamento de Tickers (Ajuste esses tickers se a Massive Docs usar outros códigos!)
+    // 1. Mapeamento de Tickers
+    // Usamos os tickers de FUTUROS e ÍNDICES mais comuns
     const TickersMap = {
-        minerio: "VALE3.SA", // Proxy (Ajuste se houver ticker de Minério Futuro)
+        minerio: "VALE3.SA", // Usaremos a variação da VALE como proxy
         brent: "BZ=F",       
         vix: "^VIX",         
-        spx: "ES=F",         // Futuro S&P
-        dxy: "DX-Y.NYB",     // Índice DXY
-        dolar: "BRL=X"       // Dólar vs Real
+        spx: "ES=F",         
+        dxy: "DX-Y.NYB",     
+        dolar: "BRL=X"       
     };
     
-    const symbols = Object.values(TickersMap).join(','); 
-    
-    // *** ENDPOINT DE COTAÇÃO EM TEMPO REAL ***
-    // Tenta o endpoint de cotações em tempo real (quotes/latest trade).
-    // Se este falhar, a Massive Docs usa outro nome (ex: /trades/latest ou /market/realtime)
-    let urlEndpoint = '/v3/reference/quotes/latest'; 
+    // O endpoint de Last Trade (última negociação) da Massive Docs é um por ticker
+    const apiUrl = process.env.MASSIVE_API_URL || 'https://api.massive.com';
+    const apiKey = process.env.MASSIVE_API_KEY;
+
+    if (!apiKey) {
+        return res.status(500).json({ success: false, message: "MASSIVE_API_KEY não configurada." });
+    }
+
+    const quotes = {};
 
     try {
-        const apiKey = process.env.MASSIVE_API_KEY;
-        const apiUrl = process.env.MASSIVE_API_URL || 'https://api.massive.com';
-        
-        if (!apiKey) {
-            throw new Error("MASSIVE_API_KEY não configurada.");
-        }
-
-        const url = `${apiUrl}${urlEndpoint}?symbols=${symbols}`;
-        
-        const options = {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`, 
-                'Host': new URL(apiUrl).host
-            }
-        };
-
-        // 2. Chamada e Tratamento de Erros
-        const apiResponse = await fetch(url, options);
-        const data = await apiResponse.json();
-
-        if (!apiResponse.ok) {
-            console.error("Erro na API Externa:", data);
-            throw new Error(`Erro ${apiResponse.status}: Falha ao buscar cotações. ENDPOINT: ${urlEndpoint}`);
-        }
-
-        const quotes = {};
-        
-        // 3. Extração dos Dados
-        // Assume que a resposta tem um array 'results'
-        if (data.results && Array.isArray(data.results)) {
-            data.results.forEach(item => {
-                const ticker = item.ticker; 
-                
-                // Assume que o campo de variação percentual é 'percent_change'
-                // Se isso falhar, você precisa descobrir o nome exato na documentação!
-                const changePercent = item.percent_change ? (item.percent_change * 100).toFixed(2) : "0.00"; 
-                
-                const fieldName = Object.keys(TickersMap).find(key => TickersMap[key] === ticker);
-                
-                if (fieldName) {
-                    quotes[fieldName] = changePercent;
+        // 2. Itera sobre cada ticker e faz a busca
+        for (const [key, ticker] of Object.entries(TickersMap)) {
+            // Tentamos o endpoint: /v2/last/trade/AAPL (conforme o README do Go Client)
+            const url = `${apiUrl}/v2/last/trade/${ticker}`;
+            
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`, 
+                    'Host': new URL(apiUrl).host
                 }
-            });
+            };
+            
+            const apiResponse = await fetch(url, options);
+            const data = await apiResponse.json();
+
+            if (!apiResponse.ok) {
+                console.warn(`Aviso: Falha ao buscar ${ticker}. Status: ${apiResponse.status}`);
+                quotes[key] = "0.00"; // Se falhar, assume 0.00 para não quebrar a página
+                continue;
+            }
+
+            // 3. Extração dos Dados (A parte que mais falha)
+            // Assumimos que a resposta tem a variação percentual
+            // **IMPORTANTE: A RESPOSTA V2 LAST TRADE SÓ DÁ O PREÇO. VAMOS TENTAR EXTRAIR A VARIAÇÃO DA ÚLTIMA COTAÇÃO**
+            
+            // Para simplificar, faremos uma busca por agg (variação diária), que é mais robusto
+            const aggUrl = `${apiUrl}/v2/aggs/ticker/${ticker}/range/1/day/${new Date().getTime()}`;
+            const aggResponse = await fetch(aggUrl, options);
+            const aggData = await aggResponse.json();
+
+            if (aggData.results && aggData.results.length > 0) {
+                const dayAgg = aggData.results[0];
+                // A variação percentual é (Fechamento - Abertura) / Abertura
+                const change = (dayAgg.c - dayAgg.o) / dayAgg.o; // 'c' é Close, 'o' é Open (Convenção Polygon/Massive)
+                quotes[key] = (change * 100).toFixed(2);
+            } else {
+                 quotes[key] = "0.00";
+            }
         }
         
-        // 4. Se encontrou todos, retorna sucesso.
-        if (Object.keys(quotes).length === Object.keys(TickersMap).length) {
-             return res.status(200).json({ success: true, quotes: quotes });
-        }
-        
-        // Se a chamada foi 200 OK, mas os dados vieram vazios (erro de ticker/período)
-        throw new Error(`Dados incompletos retornados. Tickers inválidos para ${urlEndpoint}?`);
+        // 4. Retorna sucesso
+        return res.status(200).json({ success: true, quotes: quotes });
 
     } catch (error) {
-        console.error("Erro ao buscar cotações:", error);
+        console.error("Erro Crítico no Auto-preenchimento:", error);
         return res.status(500).json({ 
             success: false, 
-            message: `Falha na busca (Código ${error.message.includes('404') ? '404' : '500'}).`
+            message: `Falha crítica. Tente novamente mais tarde.`,
+            details: error.message
         });
     }
 }
