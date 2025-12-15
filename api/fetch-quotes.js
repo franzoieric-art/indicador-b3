@@ -1,4 +1,4 @@
-// api/fetch-quotes.js - CÓDIGO DE TESTE DE CONEXÃO E CHAVE API
+// api/fetch-quotes.js - CÓDIGO FINAL COM ENDPOINT DE COTAÇÃO
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -9,14 +9,22 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
     if (req.method !== 'GET') { return res.status(405).json({ error: 'Method Not Allowed' }); }
 
-    // 1. Definição do Ticker de TESTE
+    // 1. Mapeamento de Tickers (Ajuste esses tickers se a Massive Docs usar outros códigos!)
     const TickersMap = {
-        minerio: "AAPL" // Usamos APPL apenas para testar a conexão com o endpoint de Dividends
+        minerio: "VALE3.SA", // Proxy (Ajuste se houver ticker de Minério Futuro)
+        brent: "BZ=F",       
+        vix: "^VIX",         
+        spx: "ES=F",         // Futuro S&P
+        dxy: "DX-Y.NYB",     // Índice DXY
+        dolar: "BRL=X"       // Dólar vs Real
     };
     
     const symbols = Object.values(TickersMap).join(','); 
-    // Usamos o endpoint de DIVIDENDS, que vimos na sua documentação, para forçar a conexão
-    let urlEndpoint = '/v3/reference/dividends'; 
+    
+    // *** ENDPOINT DE COTAÇÃO EM TEMPO REAL ***
+    // Tenta o endpoint de cotações em tempo real (quotes/latest trade).
+    // Se este falhar, a Massive Docs usa outro nome (ex: /trades/latest ou /market/realtime)
+    let urlEndpoint = '/v3/reference/quotes/latest'; 
 
     try {
         const apiKey = process.env.MASSIVE_API_KEY;
@@ -36,36 +44,48 @@ export default async function handler(req, res) {
             }
         };
 
-        // 2. Chamada
+        // 2. Chamada e Tratamento de Erros
         const apiResponse = await fetch(url, options);
         const data = await apiResponse.json();
 
         if (!apiResponse.ok) {
             console.error("Erro na API Externa:", data);
-            throw new Error(`Erro ${apiResponse.status} - Falha na API. Sua chave está inválida ou o endpoint não existe.`);
+            throw new Error(`Erro ${apiResponse.status}: Falha ao buscar cotações. ENDPOINT: ${urlEndpoint}`);
         }
 
-        // 3. Verifica se a busca foi bem-sucedida (O QUE NOS INTERESSA)
-        if (data.results && data.results.length > 0) {
-            // Se chegou aqui, a CHAVE API e o ENDPOINT ESTÃO CORRETOS.
-            // Retornamos um sucesso fictício para que o Front-end não quebre.
-             return res.status(200).json({ 
-                 success: true, 
-                 quotes: { 
-                     minerio: "99.99", brent: "0.00", vix: "0.00", 
-                     spx: "0.00", dxy: "0.00", dolar: "0.00" 
-                 },
-                 message: "Conexão OK! O problema agora é o NOME DO MODELO de cotação."
-             });
+        const quotes = {};
+        
+        // 3. Extração dos Dados
+        // Assume que a resposta tem um array 'results'
+        if (data.results && Array.isArray(data.results)) {
+            data.results.forEach(item => {
+                const ticker = item.ticker; 
+                
+                // Assume que o campo de variação percentual é 'percent_change'
+                // Se isso falhar, você precisa descobrir o nome exato na documentação!
+                const changePercent = item.percent_change ? (item.percent_change * 100).toFixed(2) : "0.00"; 
+                
+                const fieldName = Object.keys(TickersMap).find(key => TickersMap[key] === ticker);
+                
+                if (fieldName) {
+                    quotes[fieldName] = changePercent;
+                }
+            });
         }
         
-        throw new Error("Resposta da API OK, mas nenhum dado retornado (Ticker ou período incorreto).");
+        // 4. Se encontrou todos, retorna sucesso.
+        if (Object.keys(quotes).length === Object.keys(TickersMap).length) {
+             return res.status(200).json({ success: true, quotes: quotes });
+        }
+        
+        // Se a chamada foi 200 OK, mas os dados vieram vazios (erro de ticker/período)
+        throw new Error(`Dados incompletos retornados. Tickers inválidos para ${urlEndpoint}?`);
 
     } catch (error) {
         console.error("Erro ao buscar cotações:", error);
         return res.status(500).json({ 
             success: false, 
-            message: `Falha na busca: ${error.message}`
+            message: `Falha na busca (Código ${error.message.includes('404') ? '404' : '500'}).`
         });
     }
 }
