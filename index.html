@@ -21,6 +21,25 @@
         main { flex-grow: 1; }
         input::placeholder { color: #6B7280; }
         .result-title { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
+        
+        /* Estilo para a barra de loading (Tailwind não tem animação de barra nativa) */
+        .loading-bar {
+            height: 4px;
+            background-color: #6B7280; /* Cor de fundo */
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .loading-bar-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #3B82F6; /* Cor primária */
+            animation: pulse-fill 1.5s infinite ease-out;
+        }
+        @keyframes pulse-fill {
+            0% { transform: translateX(-100%) }
+            50% { transform: translateX(100%) }
+            100% { transform: translateX(-100%) }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -91,7 +110,6 @@
                 const inputElement = document.getElementById(key);
                 if (!inputElement) continue;
                 const value = inputElement.value.trim();
-                // Permite 0, mas bloqueia vazio ou não-número
                 if (value === "" || isNaN(parseFloat(value))) { 
                     inputElement.classList.add('border-red-500');
                     inputElement.classList.remove('border-gray-600');
@@ -120,7 +138,20 @@
 
         async function callApiHumor(inputs) {
             statusMessage.textContent = '';
-            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Consultando Gemini 2.5 Flash...</p>';
+            
+            // --- NOVA MENSAGEM DE LOADING E BARRA ---
+            resultContainer.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-center text-gray-400 font-medium animate-pulse">
+                        Analisando Cenário Global e Geopolítico...
+                    </p>
+                    <div class="loading-bar">
+                        <div class="loading-bar-fill"></div>
+                    </div>
+                </div>
+            `;
+            // ----------------------------------------
+
             analyzeBtn.disabled = true;
 
             try {
@@ -132,16 +163,17 @@
                 
                 const data = await response.json();
                 
+                // Trata erro 500 ou sucesso: false
                 if (!response.ok || data.success === false) {
-                    throw new Error(data.details || data.message || "Erro desconhecido na API");
+                    throw new Error(data.details || data.message || "Falha na análise. Tente novamente.");
                 }
                 
                 resultContainer.innerHTML = data.html;
                 initialMessage.style.display = 'none';
             } catch (error) {
                 console.error(error);
-                statusMessage.textContent = "Erro: " + error.message;
-                resultContainer.innerHTML = '';
+                statusMessage.textContent = "Erro ao analisar. Tente novamente.";
+                resultContainer.innerHTML = '<p class="text-center text-gray-400">Verifique os dados inseridos.</p>';
             } finally {
                 analyzeBtn.disabled = false;
             }
