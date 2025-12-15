@@ -91,6 +91,7 @@
                 const inputElement = document.getElementById(key);
                 if (!inputElement) continue;
                 const value = inputElement.value.trim();
+                // Permite 0, mas bloqueia vazio ou não-número
                 if (value === "" || isNaN(parseFloat(value))) { 
                     inputElement.classList.add('border-red-500');
                     inputElement.classList.remove('border-gray-600');
@@ -100,12 +101,11 @@
                     inputElement.classList.add('border-gray-600');
                 }
             }
-            if (!isValid) statusMessage.textContent = "⚠️ Preencha todos os campos.";
+            if (!isValid) statusMessage.textContent = "⚠️ Preencha todos os campos corretamente.";
             return isValid;
         }
 
         function handleAnalysis() {
-            // AGORA CAPTURA OS 5 DADOS
             const inputs = {
                 minerio: document.getElementById("minerio").value,
                 brent: document.getElementById("brent").value,
@@ -120,7 +120,7 @@
 
         async function callApiHumor(inputs) {
             statusMessage.textContent = '';
-            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Analisando...</p>';
+            resultContainer.innerHTML = '<p class="text-center text-gray-400 animate-pulse">Consultando Gemini 2.5 Flash...</p>';
             analyzeBtn.disabled = true;
 
             try {
@@ -129,13 +129,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(inputs)
                 });
+                
                 const data = await response.json();
-                if (!response.ok || data.success === false) throw new Error(data.message || "Erro API");
+                
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.details || data.message || "Erro desconhecido na API");
+                }
                 
                 resultContainer.innerHTML = data.html;
                 initialMessage.style.display = 'none';
             } catch (error) {
-                statusMessage.textContent = "Erro ao analisar. Tente novamente.";
+                console.error(error);
+                statusMessage.textContent = "Erro: " + error.message;
                 resultContainer.innerHTML = '';
             } finally {
                 analyzeBtn.disabled = false;
