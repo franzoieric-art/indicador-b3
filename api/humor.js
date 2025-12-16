@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    // 1. Configuração de CORS (Permissões de acesso)
+    // 1. Configuração de CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -10,13 +10,11 @@ export default async function handler(req, res) {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
-    // Tratamento da requisição OPTIONS (Pre-flight do navegador)
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
-    // Só aceita POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -27,33 +25,45 @@ export default async function handler(req, res) {
         // Inicializa a IA com a Chave
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         
-        // CORREÇÃO AQUI: Voltamos para o "gemini-pro" que é mais estável
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // --- CORREÇÃO DEFINITIVA: MODELO 2.5 FLASH ---
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        // --- O PROMPT "HEAD TRADER" (Mantido) ---
+        // Prompt "Head Trader" (Mantido)
         const prompt = `
-        Aja como um Head Trader Sênior de uma mesa de operações focada em Day Trade na B3.
+        Aja como um Head Trader Sênior de uma mesa de operações de alta frequência na B3.
+        Seu cliente é um Day Trader que precisa de viés imediato para abertura (Índice e Dólar).
         
-        Seu objetivo: Dar um direcionamento curto, grosso e assertivo para o trader operar a abertura.
-        
-        Dados de Mercado (Pré-Abertura):
-        - S&P 500 Futuro: ${spx}%
-        - Minério de Ferro: ${minerio}% 
-        - Petróleo Brent: ${brent}%
-        - VIX: ${vix}%
-        - DXY: ${dxy}%
-        - USD/BRL: ${dolar}%
+        Dados do Pré-Mercado:
+        - S&P 500 Futuro: ${spx}% (Termômetro Global)
+        - Minério de Ferro (Singapura): ${minerio}% (Vale/Índice)
+        - Petróleo Brent: ${brent}% (Petrobras)
+        - VIX: ${vix}% (Medo/Volatilidade)
+        - DXY: ${dxy}% (Dólar Global)
+        - USD/BRL: ${dolar}% (Câmbio Local)
 
-        Regras de Correlação:
-        1. S&P Positivo + Commodities Positivas = GAP de Alta (Risk-On).
-        2. S&P Negativo + VIX subindo = GAP de Baixa (Risk-Off).
-        3. DXY forte pressiona o Dólar Real para cima.
-        4. Minério direciona a Vale (grande peso no IBOV).
+        Regras de Bolso:
+        1. S&P e Minério positivos juntos = Forte chance de GAP de Alta no Índice.
+        2. VIX subindo forte (>1%) = Aversão a risco (Venda Índice / Compra Dólar).
+        3. DXY puxa o Dólar Real. Se DXY sobe, Dólar tende a abrir em alta.
+        4. Petróleo impacta Petrobras, mas Minério manda mais no Índice geral.
 
-        Formato da Resposta (HTML Simples):
-        <p><strong>Cenário:</strong> [Resumo de 1 linha conectando os pontos principais]</p>
-        <p><strong>Viés de Abertura:</strong> [Alta / Baixa / Neutro]</p>
-        <p><strong>Volatilidade Esperada:</strong> [Alta / Média / Baixa]</p>
+        Sua Resposta (Formato HTML Limpo):
+        <div class="text-left space-y-2">
+            <p class="text-gray-300"><strong class="text-blue-400">Análise Flash:</strong> [Uma frase direta conectando o driver principal do dia. Ex: "O otimismo externo do S&P ignora a queda do petróleo..."]</p>
+            
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                <div class="bg-gray-800 p-2 rounded border-l-4 border-blue-500">
+                    <span class="block text-xs text-gray-500 uppercase">Viés Índice</span>
+                    <span class="font-bold text-lg text-white">[ALTA / BAIXA / NEUTRO]</span>
+                </div>
+                <div class="bg-gray-800 p-2 rounded border-l-4 border-green-500">
+                    <span class="block text-xs text-gray-500 uppercase">Viés Dólar</span>
+                    <span class="font-bold text-lg text-white">[ALTA / BAIXA / NEUTRO]</span>
+                </div>
+            </div>
+            
+            <p class="text-xs text-gray-500 mt-1">⚠️ Volatilidade esperada: <span class="text-white font-bold">[ALTA / MÉDIA / BAIXA]</span>. Opere com stop.</p>
+        </div>
         `;
 
         const result = await model.generateContent(prompt);
@@ -65,10 +75,10 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Erro CRÍTICO na API IA:", error); // Isso vai pro Log da Vercel
+        console.error("Erro CRÍTICO na API IA:", error);
         return res.status(500).json({ 
             success: false, 
-            message: "Erro interno no servidor ao processar IA.",
+            message: "Erro no servidor (Modelo IA). Verifique logs.",
             details: error.message 
         });
     }
