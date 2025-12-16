@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Indicador B3 - Análise de Fluxo</title>
+  <title>Indicador B3 - Rico Plus</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* === ESTILOS GERAIS === */
@@ -15,14 +14,12 @@
       --input-bg: #1a1a1a;
       --text-color: #ffffff; 
       --border-color: #333;
-      --success-color: #00b894;
-      --danger-color: #d63031;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     body, html { height: 100%; width: 100%; background: var(--bg-color); color: var(--text-color); overflow: hidden; }
 
     /* ======================================================= */
-    /* ESTILOS DO INDICADOR B3 (CALCULADORA)         */
+    /* ESTILOS DO APP (CALCULADORA)                           */
     /* ======================================================= */
     #app-content {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -43,13 +40,8 @@
     }
 
     .input-group { margin-bottom: 20px; }
-    
-    .label-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 8px;
-    }
+    .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .label-row label { font-size: 14px; color: #aaa; font-weight: 500; }
-    
     .link-helper { color: #5a8dee; font-size: 12px; text-decoration: none; cursor: pointer; transition: 0.2s; }
     .link-helper:hover { text-decoration: underline; color: #fff; }
 
@@ -57,8 +49,7 @@
       width: 100%; background: var(--input-bg);
       border: 1px solid var(--border-color);
       padding: 12px 15px; border-radius: 8px;
-      color: white; font-size: 16px; outline: none;
-      transition: 0.3s;
+      color: white; font-size: 16px; outline: none; transition: 0.3s;
     }
     .custom-input:focus { border-color: var(--main-color); background: #222; }
 
@@ -78,19 +69,17 @@
 
     .footer-note { text-align: center; margin-top: 20px; font-size: 12px; color: #444; }
 
-    /* === RESULTADO === */
+    /* Resultado Box */
     #result-box {
-      display: none; 
-      margin-top: 20px; padding: 20px;
+      display: none; margin-top: 20px; padding: 20px;
       background: rgba(255,255,255,0.05); border-radius: 8px;
-      border: 1px solid #333; text-align: center;
-      animation: fadeIn 0.5s;
+      border: 1px solid #333; text-align: center; animation: fadeIn 0.5s;
     }
     #result-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
     #result-desc { font-size: 14px; color: #bbb; }
 
     /* ======================================================= */
-    /* ESTILOS DO OVERLAY (FORMULÁRIO) - MANTIDOS IGUAIS     */
+    /* ESTILOS DO OVERLAY (FORMULÁRIO)                        */
     /* ======================================================= */
     .onboarding-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -132,7 +121,7 @@
       
       <div class="input-group">
         <div class="label-row">
-          <label>Petróleo Brent (UKOIL %)</label>
+          <label>Petróleo Brent (UKOIL)</label>
           <a href="https://br.tradingview.com/symbols/TVC-UKOIL/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
         <input type="number" id="inpBrent" class="custom-input" placeholder="Ex: -0.20" step="0.01">
@@ -140,7 +129,7 @@
 
       <div class="input-group">
         <div class="label-row">
-          <label>S&P 500 Futuro (ES1! %)</label>
+          <label>S&P 500 Futuro (ES1!)</label>
           <a href="https://br.tradingview.com/symbols/CME_MINI-ES1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
         <input type="number" id="inpSp" class="custom-input" placeholder="Ex: 0.34" step="0.01">
@@ -148,7 +137,7 @@
 
       <div class="input-group">
         <div class="label-row">
-          <label>VIX (Índice do Medo %)</label>
+          <label>VIX (Índice do Medo)</label>
           <a href="https://br.tradingview.com/symbols/TVC-VIX/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
         <input type="number" id="inpVix" class="custom-input" placeholder="Ex: 4.83" step="0.01">
@@ -188,11 +177,11 @@
     </div>
   </div>
 
-
   <div class="onboarding-overlay" id="overlay">
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
     
     <div class="onboarding-inner">
+      
       <div class="step active" id="step1">
         <span class="question-number"><span>1</span> SETUP</span>
         <h2>Qual plataforma você usa?</h2>
@@ -240,14 +229,15 @@
             📩 Enviamos também um link de backup para seu e-mail.
         </div>
       </div>
+
     </div>
   </div>
 
   <script>
-    // === URL DO GOOGLE SCRIPT ===
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZsyTiXrPRhw9XNqVWFtNdSiBolScPvcp2wlLbdswjYas4Ud8vIZEVo8U3CdyhDyIV/exec';
+    // === URL ATUALIZADA QUE VOCÊ FORNECEU ===
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5-Y-kYk2m-9_IEHGHtXmeP3qN68XqAKJn3XYHu1-7U0CVias6hqRRCshd5nd0Zu5B/exec';
 
-    // === LÓGICA DA CALCULADORA DO INDICADOR ===
+    // === LÓGICA DA CALCULADORA ===
     function calcularFluxo() {
         // 1. Pegar os elementos
         const elBrent = document.getElementById('inpBrent');
@@ -257,7 +247,7 @@
 
         // 2. Validar se preencheu
         if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "") {
-            alert("⚠️ Atenção: Preencha todos os campos (Brent, S&P, VIX e DXY) para ter uma análise precisa.");
+            alert("⚠️ Atenção: Preencha todos os campos para ter uma análise precisa.");
             return;
         }
 
@@ -267,25 +257,14 @@
         let vix = parseFloat(elVix.value);
         let dxy = parseFloat(elDxy.value);
 
-        // 4. Calcular Score (Pontuação de Mercado)
+        // 4. Calcular Score
         let score = 0;
-
-        // Lógica de Mercado:
-        // S&P subindo = BOM (+2)
-        // S&P caindo = RUIM (-2)
-        if (sp > 0) score += 2; else score -= 2;
-
-        // Brent subindo = BOM pra Petr (+1)
-        // Brent caindo = RUIM (-1)
-        if (brent > 0) score += 1; else score -= 1;
-
-        // VIX subindo = MEDO (RUIM) (-2)
-        // VIX caindo = TRANQUILIDADE (BOM) (+1)
-        if (vix < 0) score += 1; else score -= 2; 
-
-        // DXY (Dólar Global) subindo = Tira liquidez (RUIM) (-1)
-        // DXY caindo = Injeta liquidez (BOM) (+1)
-        if (dxy < 0) score += 1; else score -= 1;
+        
+        // Regras:
+        if (sp > 0) score += 2; else score -= 2;   // S&P
+        if (brent > 0) score += 1; else score -= 1; // Brent
+        if (vix < 0) score += 1; else score -= 2;  // VIX (Inverso)
+        if (dxy < 0) score += 1; else score -= 1;  // DXY (Inverso)
 
         // 5. Exibir Resultado
         const box = document.getElementById('result-box');
@@ -295,26 +274,23 @@
         box.style.display = 'block';
 
         if (score >= 1) {
-            // COMPRA
             box.style.borderColor = '#00b894';
             box.style.backgroundColor = 'rgba(0, 184, 148, 0.1)';
             title.style.color = '#00b894';
             title.innerHTML = "VIÉS COMPRADOR (BULLISH) 🐂";
-            desc.innerHTML = "Cenário externo positivo. S&P e Commodities ajudando a bolsa.";
+            desc.innerHTML = "Cenário externo positivo. S&P e Commodities ajudando.";
         } else if (score <= -2) {
-            // VENDA
             box.style.borderColor = '#d63031';
             box.style.backgroundColor = 'rgba(214, 48, 49, 0.1)';
             title.style.color = '#d63031';
             title.innerHTML = "VIÉS VENDEDOR (BEARISH) 🐻";
-            desc.innerHTML = "Aversão a risco no exterior. Dólar ou VIX pressionando.";
+            desc.innerHTML = "Aversão a risco no exterior. Cuidado com compras.";
         } else {
-            // NEUTRO
             box.style.borderColor = '#f1c40f';
             box.style.backgroundColor = 'rgba(241, 196, 15, 0.1)';
             title.style.color = '#f1c40f';
             title.innerHTML = "MERCADO NEUTRO / LATERAL ⚖️";
-            desc.innerHTML = "Sinais mistos. Aguarde confirmação no gráfico antes de operar.";
+            desc.innerHTML = "Sinais mistos. Aguarde confirmação no gráfico.";
         }
     }
 
@@ -344,6 +320,7 @@
       document.getElementById('step3').style.display = 'none';
       document.getElementById('loadingScreen').style.display = 'block';
 
+      // Envia os dados para a URL que você atualizou
       fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
