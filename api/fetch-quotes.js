@@ -1,4 +1,4 @@
-// api/fetch-quotes.js - VERSÃO OTIMIZADA (1 CHAMADA ÚNICA)
+// api/fetch-quotes.js
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -7,49 +7,50 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-    if (req.method !== 'GET') { return res.status(405).json({ error: 'Method Not Allowed' }); }
 
-    // 1. Função para pegar o último dia útil (Sexta se for Fim de Semana/Segunda)
+    // 1. Calcula a data do último dia útil (Sexta-feira se for Segunda)
     function getLastWeekday() {
         const d = new Date();
-        const day = d.getDay(); // 0 = Domingo, 1 = Segunda, ... 6 = Sábado
+        const day = d.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
         
-        // Se for Segunda (1), Domingo (0) ou Sábado (6), volta para Sexta-feira
-        if (day === 1) d.setDate(d.getDate() - 3); // Segunda -> Sexta
-        else if (day === 0) d.setDate(d.getDate() - 2); // Domingo -> Sexta
-        else if (day === 6) d.setDate(d.getDate() - 1); // Sábado -> Sexta
-        else d.setDate(d.getDate() - 1); // Terça a Sexta -> Dia anterior
+        if (day === 1) d.setDate(d.getDate() - 3); // Segunda -> Pega Sexta
+        else if (day === 0) d.setDate(d.getDate() - 2); // Domingo -> Pega Sexta
+        else if (day === 6) d.setDate(d.getDate() - 1); // Sábado -> Pega Sexta
+        else d.setDate(d.getDate() - 1); // Terça a Sexta -> Pega Ontem
 
-        return d.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        return d.toISOString().split('T')[0]; // YYYY-MM-DD
     }
 
-    const targetDate = getLastWeekday();
+    const targetDate = getLastWeekday(); // Ex: "2025-12-12"
     
-    // 2. Mapeamento: Qual ticker do usuário corresponde a qual ticker nos EUA
+    // 2. Mapeamento: Ticker do ETF (EUA) -> Seu campo no HTML
     const TickerMap = {
         "VALE": "minerio", // Vale ADR
         "BNO": "brent",    // Brent Oil Fund
-        "VIXY": "vix",     // VIX Short-Term Futures ETF
-        "SPY": "spx",      // S&P 500 ETF
-        "UUP": "dxy",      // US Dollar Index Bullish Fund
-        // "EWZ": "dolar"  // Opcional: EWZ invertido pode servir de proxy se USDBRL falhar
+        "VIXY": "vix",     // VIX Short-Term
+        "SPY": "spx",      // S&P 500
+        "UUP": "dxy"       // Dólar Index (DXY)
     };
 
     try {
         const apiKey = process.env.MASSIVE_API_KEY;
-        // URL da Massive (Polygon) para "Agrupado Diário" (Grouped Daily)
-        // Traz o fechamento de TODO o mercado em 1 requisição.
-        const url = `https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/${targetDate}?adjusted=true`;
+        if (!apiKey) throw new Error("MASSIVE_API_KEY não configurada.");
 
-        if (!apiKey) throw new Error("API Key não configurada.");
+        // 3. Chamada ÚNICA para api.massive.com (Grouped Daily)
+        // Traz o fechamento de TODO o mercado de ações dos EUA de uma vez.
+        // Isso evita o erro "Too Many Requests" (Limite de 5).
+        const url = `https://api.massive.com/v2/aggs/grouped/locale/us/market/stocks/${targetDate}?adjusted=true`;
 
-        // 3. Requisição Única
         const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${apiKey}` }
+            headers: { 
+                'Authorization': `Bearer ${apiKey}` 
+            }
         });
 
         if (!response.ok) {
-            throw new Error(`Erro Massive: ${response.status} ${response.statusText}`);
+            // Se der erro, tenta ler o motivo
+            const errorText = await response.text();
+            throw new Error(`Erro Massive (${response.status}): ${errorText}`);
         }
 
         const data = await response.json();
@@ -58,31 +59,30 @@ export default async function handler(req, res) {
             spx: "0.00", dxy: "0.00", dolar: "0.00"
         };
 
-        // 4. Filtragem: Procura apenas os tickers que nos interessam no meio de milhares
+        // 4. Garimpa os nossos 5 tickers no meio dos milhares de resultados
         if (data.results && Array.isArray(data.results)) {
             data.results.forEach(item => {
-                // O ticker vem na propriedade 'T' (maiúsculo) neste endpoint
-                const tickerSymbol = item.T; 
+                const ticker = item.T; // 'T' é o símbolo na Massive
                 
-                if (TickerMap[tickerSymbol]) {
-                    const fieldName = TickerMap[tickerSymbol];
-                    // Cálculo da variação: (Close - Open) / Open
-                    // 'c' = Close, 'o' = Open
+                if (TickerMap[ticker]) {
+                    const fieldName = TickerMap[ticker];
+                    // Variação = (Fechamento - Abertura) / Abertura
                     const change = ((item.c - item.o) / item.o) * 100;
                     quotes[fieldName] = change.toFixed(2);
                 }
             });
         }
 
-        // Correção manual para o Dólar (USD/BRL)
-        // O endpoint de ações não traz moedas. Vamos tentar uma estimativa ou deixar manual.
-        // Se quiser tentar buscar BRL separado (seria a 2ª requisição), pode falhar no rate limit.
-        // Por segurança, deixamos 0.00 ou usamos um valor fixo de teste.
-        
+        // Retorna o que conseguiu. (Dólar ficará 0.00, o usuário preenche)
         return res.status(200).json({ success: true, quotes: quotes });
 
     } catch (error) {
-        console.error("Erro Fetch:", error);
-        return res.status(500).json({ success: false, message: error.message });
+        console.error("Erro Fetch Quotes:", error);
+        // Retorna 200 com zeros e mensagem de erro no console, para não quebrar a página
+        return res.status(200).json({ 
+            success: false, 
+            quotes: { minerio: "0.00", brent: "0.00", vix: "0.00", spx: "0.00", dxy: "0.00", dolar: "0.00" },
+            message: error.message 
+        });
     }
 }
