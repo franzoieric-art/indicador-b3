@@ -3,42 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Indicador B3 - Acesso</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>Indicador B3 - Análise de Fluxo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* === ESTILOS GERAIS === */
-    :root { --main-color: #5a23c8; --bg-color: #000000; --text-color: #ffffff; }
+    :root { 
+      --main-color: #5a23c8; 
+      --bg-color: #050505; 
+      --card-bg: #111111;
+      --input-bg: #1a1a1a;
+      --text-color: #ffffff; 
+      --border-color: #333;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     body, html { height: 100%; width: 100%; background: var(--bg-color); color: var(--text-color); overflow: hidden; }
 
-    /* === ÁREA DO SEU APP (Fica escondida atrás do formulário no começo) === */
+    /* ======================================================= */
+    /* ESTILOS DO INDICADOR B3 (CALCULADORA)         */
+    /* ======================================================= */
     #app-content {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
-      z-index: 1; 
+      z-index: 1; /* Fica atrás do overlay inicialmente */
+      background-image: radial-gradient(circle at top right, #1a0b36 0%, transparent 40%);
     }
 
-    /* === OVERLAY (O FORMULÁRIO QUE COBRE TUDO) === */
+    .calculator-container {
+      background: var(--card-bg);
+      width: 100%; max-width: 480px;
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .input-group { margin-bottom: 20px; }
+    
+    .label-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .label-row label { font-size: 14px; color: #aaa; font-weight: 500; }
+    .link-helper { color: #5a8dee; font-size: 12px; text-decoration: none; cursor: pointer; }
+    .link-helper:hover { text-decoration: underline; }
+
+    .custom-input {
+      width: 100%; background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      padding: 12px 15px; border-radius: 8px;
+      color: white; font-size: 16px; outline: none;
+      transition: 0.3s;
+    }
+    .custom-input:focus { border-color: var(--main-color); background: #222; }
+
+    .row-split { display: flex; gap: 15px; }
+    .col-half { flex: 1; }
+
+    .btn-analyze {
+      width: 100%; background: linear-gradient(90deg, #5a23c8 0%, #7b2cbf 100%);
+      border: none; padding: 16px; border-radius: 8px;
+      color: white; font-size: 16px; font-weight: 700;
+      cursor: pointer; margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(90, 35, 200, 0.4);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.2s;
+    }
+    .btn-analyze:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .footer-note { text-align: center; margin-top: 20px; font-size: 12px; color: #444; }
+
+    /* ======================================================= */
+    /* ESTILOS DO OVERLAY (FORMULÁRIO)               */
+    /* ======================================================= */
     .onboarding-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg-color); z-index: 9999; 
       display: flex; flex-direction: column; justify-content: center; padding: 30px;
-      transition: opacity 1s ease;
+      transition: opacity 0.8s ease;
     }
 
-    /* BARRA DE PROGRESSO */
     .progress-bar-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #222; z-index: 10000; }
     .progress-bar-fill { height: 100%; background: var(--main-color); width: 33%; transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); }
 
-    /* ELEMENTOS DO FORMULÁRIO */
     .onboarding-inner { max-width: 640px; margin: 0 auto; width: 100%; }
+    
     .step { display: none; opacity: 0; transform: translateY(30px); transition: all 0.5s ease-out; }
     .step.active { display: block; opacity: 1; transform: translateY(0); }
     
-    .question-number { color: var(--main-color); font-size: 14px; font-weight: 700; margin-bottom: 15px; display: block; }
-    .question-number span { border: 1px solid var(--main-color); padding: 2px 7px; border-radius: 4px; margin-right: 10px; }
+    .question-number { color: var(--main-color); font-size: 13px; font-weight: 700; margin-bottom: 15px; display: block; letter-spacing: 1px; }
+    .question-number span { border: 1px solid var(--main-color); padding: 2px 6px; border-radius: 4px; margin-right: 10px; }
     
-    h2 { font-size: 32px; font-weight: 300; margin-bottom: 40px; color: #eee; }
+    h2 { font-size: 32px; font-weight: 400; margin-bottom: 40px; color: #eee; line-height: 1.3; }
     h2 strong { font-weight: 700; color: #fff; }
     
     .options-grid { display: flex; flex-direction: column; gap: 12px; width: 100%; }
@@ -46,34 +102,85 @@
     .option-card:hover { background: rgba(90, 35, 200, 0.1); border-color: var(--main-color); transform: translateX(5px); }
     .key-hint { background: #222; font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-right: 15px; color: #888; font-weight: 700; }
     
-    .big-input { width: 100%; background: transparent; border: none; border-bottom: 3px solid #444; color: var(--main-color); font-size: 36px; padding: 15px 0; outline: none; }
-    .big-input::placeholder { color: #444; font-size: 30px; }
+    .big-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #444; color: var(--main-color); font-size: 32px; padding: 10px 0; outline: none; }
+    .big-input::placeholder { color: #444; font-size: 32px; }
 
-    .btn-finish { margin-top: 50px; background-color: var(--main-color); color: white; font-size: 22px; font-weight: 700; border: none; padding: 20px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
-    .btn-finish:hover { transform: translateY(-3px); }
+    .btn-finish { margin-top: 40px; background-color: var(--main-color); color: white; font-size: 20px; font-weight: 700; border: none; padding: 18px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
+    .btn-finish:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-    /* TELA FINAL (DENTRO DO OVERLAY) */
-    .final-screen-overlay { display: none; text-align: center; }
-    .success-icon { font-size: 60px; margin-bottom: 20px; }
+    /* TELA FINAL DO OVERLAY */
+    .final-screen-overlay { display: none; text-align: center; animation: fadeIn 0.5s; }
+    .success-icon { font-size: 60px; margin-bottom: 20px; display: block; }
     
-    .btn-access-app { background: var(--main-color); color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); }
-    .btn-access-app:hover { background: #4a1da8; }
+    .btn-access-app { background: var(--main-color); color: white; border: none; padding: 16px 32px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 30px; width: 100%; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
+    .btn-access-app:hover { background: #4a1da8; transform: translateY(-2px); }
 
-    .loading-screen { display: none; text-align: center; margin-top: 100px; }
-    .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--main-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 30px auto; }
+    .loading-screen { display: none; text-align: center; margin-top: 80px; }
+    .spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--main-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
   <div id="app-content">
-    
-    <div style="text-align: center;">
-      <h1 style="font-size: 50px; color: var(--main-color);">📊 INDICADOR B3</h1>
-      <p style="font-size: 20px; color: #888;">Aplicação de medição de humor carregada com sucesso.</p>
+    <div class="calculator-container">
+      
+      <div class="input-group">
+        <div class="label-row">
+          <label>Petróleo Brent (Mundo/Londres)</label>
+          <a href="#" class="link-helper">↗ Ver UKOIL</a>
+        </div>
+        <input type="number" class="custom-input" placeholder="-0,20" step="0.01">
+      </div>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label>S&P 500 Futuro (E-Mini)</label>
+          <a href="#" class="link-helper">↗ Ver ES1!</a>
+        </div>
+        <input type="number" class="custom-input" placeholder="0,34" step="0.01">
+      </div>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label>VIX (Índice do Medo)</label>
+          <a href="#" class="link-helper">↗ Ver VIX</a>
+        </div>
+        <input type="number" class="custom-input" placeholder="4,83" step="0.01">
+      </div>
+
+      <div class="row-split">
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>DXY</label>
+              <a href="#" class="link-helper">↗ Ver</a>
+            </div>
+            <input type="number" class="custom-input" placeholder="0,02">
+          </div>
+        </div>
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>USD/BRL</label>
+              <a href="#" class="link-helper">↗ Ver</a>
+            </div>
+            <input type="number" class="custom-input" placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-analyze">
+        ⚡ Analisar Mercado Agora
+      </button>
+
+      <div class="footer-note">Desenvolvido por Traders Profissionais - Rico Plus</div>
+
     </div>
-    
   </div>
+
+
   <div class="onboarding-overlay" id="overlay">
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
     
@@ -85,7 +192,7 @@
         <div class="options-grid">
           <button class="option-card" onclick="next(1, 'Plataforma', 'ProfitPro')"><span class="key-hint">A</span> ProfitPro</button>
           <button class="option-card" onclick="next(1, 'Plataforma', 'Tryd')"><span class="key-hint">B</span> Tryd</button>
-          <button class="option-card" onclick="next(1, 'Plataforma', 'Outra')"><span class="key-hint">C</span> Outra</button>
+          <button class="option-card" onclick="next(1, 'Plataforma', 'Outra')"><span class="key-hint">C</span> Outra / Nenhuma</button>
         </div>
       </div>
 
@@ -103,34 +210,39 @@
         <span class="question-number"><span>3</span> ACESSO</span>
         <h2>Email para liberação</h2>
         <input type="email" id="emailInput" class="big-input" placeholder="seu@email.com" required>
-        <button class="btn-finish" onclick="finish()">LIBERAR ACESSO 🚀</button>
+        <button class="btn-finish" onclick="finish()">FINALIZAR E ACESSAR 🚀</button>
       </div>
 
       <div class="loading-screen" id="loadingScreen">
         <div class="spinner"></div>
-        <p>Validando acesso...</p>
+        <p style="color:#888;">Validando seus dados...</p>
       </div>
 
       <div class="final-screen-overlay" id="finalOverlayScreen">
-        <div class="success-icon">✅</div>
+        <span class="success-icon">✅</span>
         <h2>Tudo pronto!</h2>
-        <p style="color:#aaa; margin-bottom: 30px;">Seu ambiente foi configurado com sucesso.</p>
+        <p style="color:#aaa; margin-bottom: 30px; font-size: 16px;">Seu perfil foi configurado. Você já pode acessar a ferramenta oficial do Indicador B3.</p>
         
-        <button class="btn-access-app" onclick="revelarApp()">ACESSAR INDICADOR AGORA</button>
+        <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #333;">
+            <h3 style="color: var(--main-color); margin-bottom: 10px;">Indicador B3 v2.0</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Ferramenta exclusiva Rico Plus para leitura de fluxo.</p>
+            <button class="btn-access-app" onclick="revelarApp()">ACESSAR AGORA 🚀</button>
+        </div>
         
-        <p style="margin-top: 20px; font-size: 13px; color: #444;">(Um backup de acesso foi enviado ao seu e-mail)</p>
+        <div style="margin-top: 30px; padding: 10px; background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 20px; display: inline-block; color: #2ecc71; font-size: 13px;">
+            📩 Enviamos também um link de backup para seu e-mail.
+        </div>
       </div>
 
     </div>
   </div>
 
   <script>
-    // === SUA NOVA URL INTEGRADA ===
+    // URL DO SCRIPT GOOGLE
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuwmBOElhBdo-BFOiRqPXHzFvPhAJbH0YNLYr8wqi-Dcze_521b7l3Nk0IEjJIY_cw/exec';
 
     let answers = {};
 
-    // Navegação entre passos
     function next(step, field, val) {
       answers[field] = val;
       const current = document.getElementById('step'+step);
@@ -147,30 +259,25 @@
       }, 400);
     }
 
-    // Envio dos dados
     function finish() {
       const email = document.getElementById('emailInput').value.trim();
       if(!email.includes('@') || email.length < 5) return alert('Por favor, digite um email válido.');
       
       answers['Email'] = email;
 
-      // Troca tela para loading
       document.getElementById('step3').style.display = 'none';
       document.getElementById('loadingScreen').style.display = 'block';
 
-      // Envia para o Google Script
       fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers)
       }).then(() => {
-        // Sucesso
         mostrarBotaoFinal();
       }).catch(e => {
         console.error(e);
-        // Mesmo com erro de rede, libera o acesso para não travar o user
-        mostrarBotaoFinal();
+        mostrarBotaoFinal(); // Libera mesmo com erro de rede
       });
     }
 
@@ -179,18 +286,17 @@
       document.getElementById('finalOverlayScreen').style.display = 'block';
     }
 
-    // FUNÇÃO QUE REMOVE A TELA PRETA (FIM DO LOOP)
+    // A MÁGICA: ESSA FUNÇÃO APAGA A TELA PRETA E MOSTRA A CALCULADORA
     function revelarApp() {
       const overlay = document.getElementById('overlay');
       overlay.style.opacity = '0';
       
       setTimeout(() => {
         overlay.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Destrava rolagem
-      }, 1000);
+        document.body.style.overflow = 'auto'; // Destrava a página
+      }, 800);
     }
 
-    // Enter para enviar
     document.getElementById('emailInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') finish();
     });
