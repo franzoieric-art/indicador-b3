@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    // 1. Configuração de CORS (Permissões de acesso)
+    // 1. Configuração de CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
     res.setHeader(
         'Access-Control-Allow-Headers',
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
@@ -20,52 +20,48 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 2. Recebendo os 6 indicadores (incluindo SPX)
         const { minerio, brent, vix, dxy, dolar, spx } = req.body;
 
-        console.log("Recebido:", { minerio, brent, vix, dxy, dolar, spx });
-
-        // Validação: Garante que todos os 6 campos vieram
-        if (minerio == null || brent == null || vix == null || dxy == null || dolar == null || spx == null) {
+        // Validação básica
+        if (!minerio || !brent || !vix || !spx || !dxy || !dolar) {
             return res.status(400).json({ 
                 success: false, 
-                message: "Dados incompletos. Por favor, preencha todos os 6 indicadores." 
+                message: "Dados incompletos." 
             });
         }
 
-        // 3. Inicializando a IA
-        if (!process.env.GEMINI_API_KEY) {
-            throw new Error("Chave API não configurada.");
-        }
-        
+        // Inicializa a IA
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Usando Flash que é mais rápido
 
-        // Usando o modelo solicitado (Gemini 2.5 Flash)
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
-
-        // 4. Prompt com o novo indicador S&P Futuro
+        // --- A MÁGICA ACONTECE AQUI: O NOVO PROMPT "TRADER" ---
         const prompt = `
-        Atue como um analista de mercado financeiro sênior (Especialista em B3).
+        Aja como um Head Trader Sênior de uma mesa de operações focada em Day Trade na B3 (Índice e Dólar).
         
-        Analise o sentimento de abertura com base nestes 6 dados:
-        - Minério de Ferro: ${minerio}%
-        - Petróleo Brent: ${brent}%
-        - VIX (Risco Global): ${vix}%
-        - S&P 500 Futuro: ${spx}% <--- NOVO
-        - DXY (Dólar Global): ${dxy}%
-        - USD/BRL (Câmbio Interno): ${dolar}%
+        Seu objetivo: Dar um direcionamento assertivo e rápido para o trader que vai operar a abertura.
+        
+        Dados de Mercado (Pré-Abertura):
+        - S&P 500 Futuro: ${spx}% (O fiel da balança global)
+        - Minério de Ferro: ${minerio}% (Direciona Vale/Índice)
+        - Petróleo Brent: ${brent}% (Direciona Petrobras)
+        - VIX: ${vix}% (Medo/Volatilidade. Acima de 1% positivo é alerta)
+        - DXY: ${dxy}% (Força do Dólar Global)
+        - USD/BRL: ${dolar}% (Câmbio local)
 
-        Regras de Correlação:
-        1. S&P Futuro: É o principal termômetro de humor de Wall Street antes da abertura. S&P Futuro subindo é um forte indicador de Risk-On global (positivo).
-        2. DXY e USD/BRL: Analise a correlação para identificar se o risco é global ou local.
-        3. Commodities: Minério e Brent dão a direção para Vale e Petrobras.
+        Regras de Análise:
+        1. S&P Positivo + Commodities Positivas = GAP de Alta (Risk-On).
+        2. S&P Negativo + VIX subindo = GAP de Baixa (Risk-Off).
+        3. DXY subindo forte geralmente pressiona o Dólar Real para cima.
+        4. Minério tem peso duplo no Índice Bovespa (Vale).
 
-        Gere um resumo curto (máximo 4 linhas), tom profissional e direto.
-        Utilize tags HTML para destacar (ex: <strong>, <span class="text-green-400">, <span class="text-red-400">).
-        Termine obrigatoriamente com: "Viés de Abertura: [Alta / Baixa / Volatilidade]".
+        Formato da Resposta (Obrigatório):
+        Comece com: "Olá, Trader."
+        Parágrafo 1: Resumo executivo do cenário. Conecte os pontos (Ex: "O S&P puxa o otimismo, apoiado pelo Minério..."). Use linguagem de trader (pullback, gap, fluxo, aversão a risco).
+        Parágrafo 2 (Conclusão Assertiva): "Cenário Provável: Abertura em [Alta/Baixa/Neutro] com [Alta/Baixa/Média] volatilidade."
+
+        Mantenha curto (máximo 350 caracteres). Seja direto.
         `;
 
-        // 5. Geração
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
@@ -75,12 +71,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Erro Crítico na API:", error);
-        
-        return res.status(500).json({ 
-            success: false, 
-            message: "Erro ao processar a IA. (Verifique o nome do modelo/chave API).",
-            details: error.message 
-        });
+        console.error("Erro API IA:", error);
+        return res.status(500).json({ success: false, message: "Erro ao processar análise." });
     }
 }
