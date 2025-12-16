@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    // 1. Configuração de CORS
+    // 1. Configuração de CORS (Permissões de acesso)
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -10,11 +10,13 @@ export default async function handler(req, res) {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
+    // Tratamento da requisição OPTIONS (Pre-flight do navegador)
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
+    // Só aceita POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -22,44 +24,36 @@ export default async function handler(req, res) {
     try {
         const { minerio, brent, vix, dxy, dolar, spx } = req.body;
 
-        // Validação básica
-        if (!minerio || !brent || !vix || !spx || !dxy || !dolar) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Dados incompletos." 
-            });
-        }
-
-        // Inicializa a IA
+        // Inicializa a IA com a Chave
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Usando Flash que é mais rápido
-
-        // --- A MÁGICA ACONTECE AQUI: O NOVO PROMPT "TRADER" ---
-        const prompt = `
-        Aja como um Head Trader Sênior de uma mesa de operações focada em Day Trade na B3 (Índice e Dólar).
         
-        Seu objetivo: Dar um direcionamento assertivo e rápido para o trader que vai operar a abertura.
+        // CORREÇÃO AQUI: Voltamos para o "gemini-pro" que é mais estável
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        // --- O PROMPT "HEAD TRADER" (Mantido) ---
+        const prompt = `
+        Aja como um Head Trader Sênior de uma mesa de operações focada em Day Trade na B3.
+        
+        Seu objetivo: Dar um direcionamento curto, grosso e assertivo para o trader operar a abertura.
         
         Dados de Mercado (Pré-Abertura):
-        - S&P 500 Futuro: ${spx}% (O fiel da balança global)
-        - Minério de Ferro: ${minerio}% (Direciona Vale/Índice)
-        - Petróleo Brent: ${brent}% (Direciona Petrobras)
-        - VIX: ${vix}% (Medo/Volatilidade. Acima de 1% positivo é alerta)
-        - DXY: ${dxy}% (Força do Dólar Global)
-        - USD/BRL: ${dolar}% (Câmbio local)
+        - S&P 500 Futuro: ${spx}%
+        - Minério de Ferro: ${minerio}% 
+        - Petróleo Brent: ${brent}%
+        - VIX: ${vix}%
+        - DXY: ${dxy}%
+        - USD/BRL: ${dolar}%
 
-        Regras de Análise:
+        Regras de Correlação:
         1. S&P Positivo + Commodities Positivas = GAP de Alta (Risk-On).
         2. S&P Negativo + VIX subindo = GAP de Baixa (Risk-Off).
-        3. DXY subindo forte geralmente pressiona o Dólar Real para cima.
-        4. Minério tem peso duplo no Índice Bovespa (Vale).
+        3. DXY forte pressiona o Dólar Real para cima.
+        4. Minério direciona a Vale (grande peso no IBOV).
 
-        Formato da Resposta (Obrigatório):
-        Comece com: "Olá, Trader."
-        Parágrafo 1: Resumo executivo do cenário. Conecte os pontos (Ex: "O S&P puxa o otimismo, apoiado pelo Minério..."). Use linguagem de trader (pullback, gap, fluxo, aversão a risco).
-        Parágrafo 2 (Conclusão Assertiva): "Cenário Provável: Abertura em [Alta/Baixa/Neutro] com [Alta/Baixa/Média] volatilidade."
-
-        Mantenha curto (máximo 350 caracteres). Seja direto.
+        Formato da Resposta (HTML Simples):
+        <p><strong>Cenário:</strong> [Resumo de 1 linha conectando os pontos principais]</p>
+        <p><strong>Viés de Abertura:</strong> [Alta / Baixa / Neutro]</p>
+        <p><strong>Volatilidade Esperada:</strong> [Alta / Média / Baixa]</p>
         `;
 
         const result = await model.generateContent(prompt);
@@ -71,7 +65,11 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Erro API IA:", error);
-        return res.status(500).json({ success: false, message: "Erro ao processar análise." });
+        console.error("Erro CRÍTICO na API IA:", error); // Isso vai pro Log da Vercel
+        return res.status(500).json({ 
+            success: false, 
+            message: "Erro interno no servidor ao processar IA.",
+            details: error.message 
+        });
     }
 }
