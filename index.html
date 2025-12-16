@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rico Plus - Setup</title>
+  <title>Indicador B3 - Setup</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --main-color: #5a23c8;
+      --main-color: #5a23c8; /* Roxo Rico Plus */
       --bg-color: #0a0a0a;
       --text-color: #ffffff;
     }
@@ -15,84 +15,65 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     body, html { height: 100%; width: 100%; background: var(--bg-color); color: var(--text-color); }
 
-    /* =========================================
-       ESTILO DO DASHBOARD (O QUE APARECE DEPOIS)
-       ========================================= */
-    .dashboard-content {
-      padding: 40px;
-      max-width: 1200px;
-      margin: 0 auto;
-      opacity: 0; /* Começa invisível para dar efeito surpresa */
-      transition: opacity 1.5s ease;
+    /* === CONTEÚDO FINAL (INDICADOR B3) === */
+    .final-content {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; text-align: center; padding: 30px;
+      opacity: 0; transition: opacity 1.5s ease;
     }
 
-    header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; border-bottom: 1px solid #333; padding-bottom: 20px;
+    .success-icon { font-size: 60px; margin-bottom: 20px; }
+    .final-title { font-size: 42px; font-weight: 700; margin-bottom: 10px; }
+    .final-desc { font-size: 18px; color: #888; max-width: 500px; margin-bottom: 40px; line-height: 1.6; }
+    
+    .download-card {
+      background: #111; border: 1px solid #333; padding: 30px; border-radius: 12px;
+      width: 100%; max-width: 450px; text-align: left;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .logo { font-size: 24px; font-weight: 700; color: #fff; }
-    .logo span { color: var(--main-color); }
-    .user-profile { font-size: 14px; color: #888; }
+    .download-card h3 { color: var(--main-color); margin-bottom: 10px; font-size: 20px; }
+    .download-card p { font-size: 14px; color: #666; margin-bottom: 20px; }
+    
+    .btn-access {
+      display: block; width: 100%; padding: 15px; background: var(--main-color); color: white;
+      text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
+      transition: 0.3s;
+    }
+    .btn-access:hover { background: #4a1da8; transform: translateY(-2px); }
 
-    .hero-section h1 { font-size: 42px; margin-bottom: 10px; }
-    .hero-section p { color: #888; font-size: 18px; margin-bottom: 40px; }
+    .email-alert {
+      margin-top: 25px; font-size: 14px; color: #2ecc71; background: rgba(46, 204, 113, 0.1);
+      padding: 10px 20px; border-radius: 20px; border: 1px solid #2ecc71; display: inline-block;
+    }
 
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: #111; padding: 30px; border-radius: 12px; border: 1px solid #222; }
-    .card h3 { margin-bottom: 10px; color: var(--main-color); }
-    .card p { color: #666; font-size: 14px; line-height: 1.6; }
-
-    /* =========================================
-       ESTILO DO ONBOARDING (FORMULÁRIO)
-       ========================================= */
+    /* === OVERLAY DO FORMULÁRIO (Cobre o site inicialmente) === */
     .onboarding-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg-color); z-index: 9999;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 30px;
+      display: flex; flex-direction: column; justify-content: center; padding: 30px;
     }
-
     .progress-bar-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #222; z-index: 10000; }
     .progress-bar-fill { height: 100%; background: var(--main-color); width: 33%; transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); }
-
     .onboarding-inner { max-width: 640px; margin: 0 auto; width: 100%; }
-
     .step { display: none; opacity: 0; transform: translateY(30px); transition: all 0.5s ease-out; }
     .step.active { display: block; opacity: 1; transform: translateY(0); }
-
     .question-number { color: var(--main-color); font-size: 14px; font-weight: 700; margin-bottom: 15px; display: block; letter-spacing: 1px; }
     .question-number span { border: 1px solid var(--main-color); padding: 2px 7px; border-radius: 4px; margin-right: 10px; }
-
     h2 { font-size: 32px; font-weight: 300; line-height: 1.3; margin-bottom: 40px; color: #eee; }
     h2 strong { font-weight: 700; color: #fff; }
-    .desc { color: #888; margin-bottom: 25px; font-size: 16px; margin-top: -20px; }
-
     .options-grid { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-    .option-card {
-      background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 18px 25px; border-radius: 8px;
-      color: #fff; font-size: 18px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.3s; display: flex; align-items: center;
-    }
+    .option-card { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 18px 25px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.3s; display: flex; align-items: center; }
     .option-card:hover { background: rgba(90, 35, 200, 0.1); border-color: var(--main-color); transform: translateX(5px); }
     .key-hint { background: #222; font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-right: 15px; color: #888; font-weight: 700; }
-
-    .big-input {
-      width: 100%; background: transparent; border: none; border-bottom: 3px solid #444;
-      color: var(--main-color); font-size: 36px; font-weight: 300; padding: 15px 0; outline: none; transition: border-color 0.3s;
-    }
+    .big-input { width: 100%; background: transparent; border: none; border-bottom: 3px solid #444; color: var(--main-color); font-size: 36px; font-weight: 300; padding: 15px 0; outline: none; transition: border-color 0.3s; }
     .big-input::placeholder { color: #444; }
     .big-input:focus { border-bottom-color: var(--main-color); }
-
-    .btn-finish {
-      margin-top: 50px; background-color: var(--main-color); color: white; font-size: 22px; font-weight: 700;
-      border: none; padding: 20px 40px; width: 100%; border-radius: 8px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3);
-    }
+    .btn-finish { margin-top: 50px; background-color: var(--main-color); color: white; font-size: 22px; font-weight: 700; border: none; padding: 20px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); }
     .btn-finish:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(90, 35, 200, 0.5); }
-
-    .footer-brand { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; font-size: 14px; color: #666; }
-    
     .loading-screen { display: none; text-align: center; margin-top: 100px; }
     .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--main-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 30px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .footer-brand { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; font-size: 14px; color: #666; }
   </style>
 </head>
 <body>
@@ -101,30 +82,20 @@
     <div class="progress-bar-fill" id="progressBar"></div>
   </div>
 
-  <div class="dashboard-content" id="realContent">
-    <header>
-      <div class="logo">Rico<span>Plus</span></div>
-      <div class="user-profile">Status: <strong>Membro Ativo</strong></div>
-    </header>
+  <div class="final-content" id="realContent">
+    <div class="success-icon">✅</div>
+    <div class="final-title">Tudo pronto!</div>
+    <p class="final-desc">Seu perfil foi configurado. Você já pode acessar a ferramenta oficial do Indicador B3.</p>
 
-    <div class="hero-section">
-      <h1>Bem-vindo, Trader.</h1>
-      <p>Seu setup foi configurado com sucesso. Aqui estão seus materiais:</p>
+    <div class="download-card">
+      <h3>Indicador B3 v2.0</h3>
+      <p>Ferramenta exclusiva Rico Plus para leitura de fluxo e regiões de valor.</p>
+      
+      <a href="https://indicador-b3.vercel.app/" class="btn-access" target="_blank">ACESSAR AGORA 🚀</a>
     </div>
 
-    <div class="cards-grid">
-      <div class="card">
-        <h3>01. Indicador B3</h3>
-        <p>Acesse o script atualizado para ProfitPro e comece a testar as regiões de valor.</p>
-      </div>
-      <div class="card">
-        <h3>02. Gestão de Risco</h3>
-        <p>Planilha automatizada para calcular seus stops e alvos baseado na volatilidade.</p>
-      </div>
-      <div class="card">
-        <h3>03. Comunidade VIP</h3>
-        <p>Link direto para o grupo de networking com outros operadores de fluxo.</p>
-      </div>
+    <div class="email-alert">
+      📩 Enviamos também um link de backup para seu e-mail.
     </div>
   </div>
 
@@ -154,7 +125,7 @@
       <div class="step" id="step3">
         <span class="question-number"><span>3</span> LIBERAÇÃO</span>
         <h2>Para onde devo enviar seu <strong>acesso gratuito?</strong></h2>
-        <p class="desc">Prometemos zero spam.</p>
+        <p style="color:#888; margin-bottom:20px;">Prometemos zero spam.</p>
         <input type="email" id="emailInput" class="big-input" placeholder="digite seu melhor e-mail..." required>
         <button class="btn-finish" onclick="finish()">FINALIZAR E ACESSAR 🚀</button>
       </div>
@@ -162,7 +133,7 @@
       <div class="loading-screen" id="finalScreen">
         <div class="spinner"></div>
         <h2 style="margin-bottom: 10px;">Quase lá...</h2>
-        <p style="color: #888;">Estamos preparando seu ambiente no Rico Plus.</p>
+        <p style="color: #888;">Estamos gerando seu acesso exclusivo.</p>
       </div>
 
       <div class="footer-brand">Segurança por <strong>Rico Plus</strong></div>
@@ -170,80 +141,60 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybxEDLJ7gtHZheLl2bO7K93S56Z77inMMe1kzLIjEGoIou7Z95QtnWNGbFiHBcu0Ds/exec'; 
+    // === SEU LINK NOVO ATUALIZADO ABAIXO ===
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAaxiOR3IaQb0WWsX2xJ4goGKQFNtQS_RQ1sk0EIGEs1EFjZJDXSCJPEPCV6JxSX7E/exec'; 
 
     let userAnswers = {};
 
-    function next(currentStepNum, field, value) {
+    function next(step, field, value) {
       userAnswers[field] = value;
-      const currentStepEl = document.getElementById('step' + currentStepNum);
-      currentStepEl.style.opacity = '0';
-      currentStepEl.style.transform = 'translateY(-40px)'; 
-
+      const current = document.getElementById('step' + step);
+      current.style.opacity = '0'; current.style.transform = 'translateY(-40px)';
+      
       setTimeout(() => {
-        currentStepEl.classList.remove('active');
-        const nextStepNum = currentStepNum + 1;
-        const nextStepEl = document.getElementById('step' + nextStepNum);
-        if(nextStepEl) {
-          nextStepEl.classList.add('active');
-          const progress = (nextStepNum / 3) * 100;
-          document.getElementById('progressBar').style.width = progress + '%';
+        current.classList.remove('active');
+        const nextStep = document.getElementById('step' + (step + 1));
+        if(nextStep) {
+          nextStep.classList.add('active');
+          document.getElementById('progressBar').style.width = ((step + 1)/3)*100 + '%';
         }
-      }, 500); 
+      }, 500);
     }
 
     function finish() {
-      const emailInput = document.getElementById('emailInput');
-      const emailValue = emailInput.value.trim();
-
-      if(!emailValue.includes('@') || emailValue.length < 5) {
-        alert('Por favor, digite um e-mail válido.');
-        return;
-      }
+      const email = document.getElementById('emailInput').value.trim();
+      if(!email.includes('@') || email.length < 5) { alert('E-mail inválido.'); return; }
       
-      userAnswers['Email'] = emailValue;
-      
+      userAnswers['Email'] = email;
       const btn = document.querySelector('.btn-finish');
-      btn.innerHTML = "Enviando...";
-      btn.style.opacity = "0.5";
-      btn.disabled = true;
+      btn.innerText = "Enviando..."; btn.style.opacity = "0.6"; btn.disabled = true;
 
       fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors', 
+        method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userAnswers)
       }).then(() => {
-        // Mostra Loading
+        // Remove a parte visual do formulário
         document.getElementById('step3').style.display = 'none';
         document.querySelector('.footer-brand').style.display = 'none';
         document.getElementById('finalScreen').style.display = 'block';
         
-        // SIMULAÇÃO DO TEMPO DE PROCESSAMENTO
+        // Simula processamento e revela a tela final
         setTimeout(() => {
-          // 1. Remove o Overlay
           const overlay = document.getElementById('overlay');
-          const progBar = document.getElementById('progBarContainer');
-          
           overlay.style.transition = 'opacity 1s ease';
           overlay.style.opacity = '0';
-          progBar.style.opacity = '0';
+          document.getElementById('progBarContainer').style.display = 'none';
           
-          // 2. Revela o Dashboard
-          const content = document.getElementById('realContent');
-          content.style.opacity = '1';
-
-          setTimeout(() => {
-             overlay.style.display = 'none';
-             progBar.style.display = 'none';
-          }, 1000);
+          // Mostra a tela final do Indicador
+          document.getElementById('realContent').style.opacity = '1';
           
+          setTimeout(() => { overlay.style.display = 'none'; }, 1000);
         }, 3000);
-
       }).catch(err => {
         console.error(err);
-        alert('Erro ao conectar. Tente novamente.');
-        btn.innerHTML = "FINALIZAR E ACESSAR 🚀";
-        btn.disabled = false;
+        alert('Erro ao enviar. Tente novamente.');
+        btn.innerText = "FINALIZAR E ACESSAR 🚀"; btn.disabled = false;
       });
     }
 
