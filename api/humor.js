@@ -22,52 +22,56 @@ export default async function handler(req, res) {
     try {
         const { minerio, brent, vix, dxy, dolar, spx } = req.body;
 
-        // Inicializa a IA com a Chave
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         
-        // --- CORREÇÃO DEFINITIVA: MODELO 2.5 FLASH ---
+        // Mantendo o modelo 2.5 conforme solicitado
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        // Prompt "Head Trader" (Mantido)
         const prompt = `
-        Aja como um Head Trader Sênior de uma mesa de operações de alta frequência na B3.
-        Seu cliente é um Day Trader que precisa de viés imediato para abertura (Índice e Dólar).
+        Aja como um Head Trader Institucional da B3. Seja direto, técnico e cirúrgico.
         
         Dados do Pré-Mercado:
-        - S&P 500 Futuro: ${spx}% (Termômetro Global)
-        - Minério de Ferro (Singapura): ${minerio}% (Vale/Índice)
-        - Petróleo Brent: ${brent}% (Petrobras)
-        - VIX: ${vix}% (Medo/Volatilidade)
-        - DXY: ${dxy}% (Dólar Global)
-        - USD/BRL: ${dolar}% (Câmbio Local)
+        - S&P 500 Futuro: ${spx}%
+        - Minério (SGX): ${minerio}%
+        - Brent: ${brent}%
+        - VIX: ${vix}%
+        - DXY: ${dxy}%
+        - USD/BRL: ${dolar}%
 
-        Regras de Bolso:
-        1. S&P e Minério positivos juntos = Forte chance de GAP de Alta no Índice.
-        2. VIX subindo forte (>1%) = Aversão a risco (Venda Índice / Compra Dólar).
-        3. DXY puxa o Dólar Real. Se DXY sobe, Dólar tende a abrir em alta.
-        4. Petróleo impacta Petrobras, mas Minério manda mais no Índice geral.
+        Gere um HTML puro (sem crases de markdown) com esta estrutura visual:
+        
+        <div class="space-y-4">
+            <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                <p class="text-gray-300 text-sm leading-relaxed">
+                    <strong class="text-blue-400 uppercase text-xs tracking-wider block mb-1">Morning Call IA</strong>
+                    [Sua análise de 2 linhas aqui. Ex: O S&P renova máximas ignorando o petróleo, o que projeta abertura positiva, mas o VIX exige cautela com stops curtos.]
+                </p>
+            </div>
 
-        Sua Resposta (Formato HTML Limpo):
-        <div class="text-left space-y-2">
-            <p class="text-gray-300"><strong class="text-blue-400">Análise Flash:</strong> [Uma frase direta conectando o driver principal do dia. Ex: "O otimismo externo do S&P ignora a queda do petróleo..."]</p>
-            
-            <div class="grid grid-cols-2 gap-4 mt-2">
-                <div class="bg-gray-800 p-2 rounded border-l-4 border-blue-500">
-                    <span class="block text-xs text-gray-500 uppercase">Viés Índice</span>
-                    <span class="font-bold text-lg text-white">[ALTA / BAIXA / NEUTRO]</span>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-gray-900 p-3 rounded border-l-4 border-blue-500 flex flex-col items-center justify-center shadow-lg">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Índice Futuro</span>
+                    <span class="font-black text-xl text-white tracking-tight">[ALTA / BAIXA]</span>
                 </div>
-                <div class="bg-gray-800 p-2 rounded border-l-4 border-green-500">
-                    <span class="block text-xs text-gray-500 uppercase">Viés Dólar</span>
-                    <span class="font-bold text-lg text-white">[ALTA / BAIXA / NEUTRO]</span>
+                <div class="bg-gray-900 p-3 rounded border-l-4 border-green-500 flex flex-col items-center justify-center shadow-lg">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Dólar Futuro</span>
+                    <span class="font-black text-xl text-white tracking-tight">[ALTA / BAIXA]</span>
                 </div>
             </div>
             
-            <p class="text-xs text-gray-500 mt-1">⚠️ Volatilidade esperada: <span class="text-white font-bold">[ALTA / MÉDIA / BAIXA]</span>. Opere com stop.</p>
+            <div class="flex items-center justify-between text-xs text-gray-500 border-t border-gray-800 pt-2 mt-2">
+                <span>Volatilidade: <strong class="text-white">[ALTA/MÉDIA]</strong></span>
+                <span>Driver: <strong class="text-blue-400">[Fator Principal]</strong></span>
+            </div>
         </div>
         `;
 
         const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        let responseText = result.response.text();
+
+        // --- A MÁGICA DA LIMPEZA ---
+        // Remove as crases (```html e ```) que causavam a "quebrinha" no layout
+        responseText = responseText.replace(/```html/g, '').replace(/```/g, '');
 
         return res.status(200).json({
             success: true,
@@ -75,10 +79,10 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Erro CRÍTICO na API IA:", error);
+        console.error("Erro API IA:", error);
         return res.status(500).json({ 
             success: false, 
-            message: "Erro no servidor (Modelo IA). Verifique logs.",
+            message: "Erro no processamento.",
             details: error.message 
         });
     }
