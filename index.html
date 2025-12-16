@@ -3,201 +3,194 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Indicador B3 - Setup</title>
+  <title>Indicador B3 - Acesso</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --main-color: #5a23c8; /* Roxo Rico Plus */
-      --bg-color: #0a0a0a;
-      --text-color: #ffffff;
-    }
-
+    /* === ESTILOS GERAIS === */
+    :root { --main-color: #5a23c8; --bg-color: #000000; --text-color: #ffffff; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-    body, html { height: 100%; width: 100%; background: var(--bg-color); color: var(--text-color); }
+    body, html { height: 100%; width: 100%; background: var(--bg-color); color: var(--text-color); overflow: hidden; }
 
-    /* === CONTEÚDO FINAL (INDICADOR B3) === */
-    .final-content {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh; text-align: center; padding: 30px;
-      opacity: 0; transition: opacity 1.5s ease;
+    /* === ÁREA DO SEU APP (Fica escondida atrás do formulário no começo) === */
+    #app-content {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1; 
     }
 
-    .success-icon { font-size: 60px; margin-bottom: 20px; }
-    .final-title { font-size: 42px; font-weight: 700; margin-bottom: 10px; }
-    .final-desc { font-size: 18px; color: #888; max-width: 500px; margin-bottom: 40px; line-height: 1.6; }
-    
-    .download-card {
-      background: #111; border: 1px solid #333; padding: 30px; border-radius: 12px;
-      width: 100%; max-width: 450px; text-align: left;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .download-card h3 { color: var(--main-color); margin-bottom: 10px; font-size: 20px; }
-    .download-card p { font-size: 14px; color: #666; margin-bottom: 20px; }
-    
-    .btn-access {
-      display: block; width: 100%; padding: 15px; background: var(--main-color); color: white;
-      text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;
-      transition: 0.3s;
-    }
-    .btn-access:hover { background: #4a1da8; transform: translateY(-2px); }
-
-    .email-alert {
-      margin-top: 25px; font-size: 14px; color: #2ecc71; background: rgba(46, 204, 113, 0.1);
-      padding: 10px 20px; border-radius: 20px; border: 1px solid #2ecc71; display: inline-block;
-    }
-
-    /* === OVERLAY DO FORMULÁRIO (Cobre o site inicialmente) === */
+    /* === OVERLAY (O FORMULÁRIO QUE COBRE TUDO) === */
     .onboarding-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-color); z-index: 9999;
+      background: var(--bg-color); z-index: 9999; 
       display: flex; flex-direction: column; justify-content: center; padding: 30px;
+      transition: opacity 1s ease;
     }
+
+    /* BARRA DE PROGRESSO */
     .progress-bar-container { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #222; z-index: 10000; }
     .progress-bar-fill { height: 100%; background: var(--main-color); width: 33%; transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); }
+
+    /* ELEMENTOS DO FORMULÁRIO */
     .onboarding-inner { max-width: 640px; margin: 0 auto; width: 100%; }
     .step { display: none; opacity: 0; transform: translateY(30px); transition: all 0.5s ease-out; }
     .step.active { display: block; opacity: 1; transform: translateY(0); }
-    .question-number { color: var(--main-color); font-size: 14px; font-weight: 700; margin-bottom: 15px; display: block; letter-spacing: 1px; }
+    
+    .question-number { color: var(--main-color); font-size: 14px; font-weight: 700; margin-bottom: 15px; display: block; }
     .question-number span { border: 1px solid var(--main-color); padding: 2px 7px; border-radius: 4px; margin-right: 10px; }
-    h2 { font-size: 32px; font-weight: 300; line-height: 1.3; margin-bottom: 40px; color: #eee; }
+    
+    h2 { font-size: 32px; font-weight: 300; margin-bottom: 40px; color: #eee; }
     h2 strong { font-weight: 700; color: #fff; }
+    
     .options-grid { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-    .option-card { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 18px 25px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 500; cursor: pointer; text-align: left; transition: all 0.3s; display: flex; align-items: center; }
+    .option-card { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 18px 25px; border-radius: 8px; color: #fff; font-size: 18px; cursor: pointer; text-align: left; display: flex; align-items: center; transition: 0.3s; }
     .option-card:hover { background: rgba(90, 35, 200, 0.1); border-color: var(--main-color); transform: translateX(5px); }
     .key-hint { background: #222; font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-right: 15px; color: #888; font-weight: 700; }
-    .big-input { width: 100%; background: transparent; border: none; border-bottom: 3px solid #444; color: var(--main-color); font-size: 36px; font-weight: 300; padding: 15px 0; outline: none; transition: border-color 0.3s; }
-    .big-input::placeholder { color: #444; }
-    .big-input:focus { border-bottom-color: var(--main-color); }
-    .btn-finish { margin-top: 50px; background-color: var(--main-color); color: white; font-size: 22px; font-weight: 700; border: none; padding: 20px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); }
-    .btn-finish:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(90, 35, 200, 0.5); }
+    
+    .big-input { width: 100%; background: transparent; border: none; border-bottom: 3px solid #444; color: var(--main-color); font-size: 36px; padding: 15px 0; outline: none; }
+    .big-input::placeholder { color: #444; font-size: 30px; }
+
+    .btn-finish { margin-top: 50px; background-color: var(--main-color); color: white; font-size: 22px; font-weight: 700; border: none; padding: 20px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
+    .btn-finish:hover { transform: translateY(-3px); }
+
+    /* TELA FINAL (DENTRO DO OVERLAY) */
+    .final-screen-overlay { display: none; text-align: center; }
+    .success-icon { font-size: 60px; margin-bottom: 20px; }
+    
+    .btn-access-app { background: var(--main-color); color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); }
+    .btn-access-app:hover { background: #4a1da8; }
+
     .loading-screen { display: none; text-align: center; margin-top: 100px; }
     .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--main-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 30px auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .footer-brand { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; font-size: 14px; color: #666; }
   </style>
 </head>
 <body>
 
-  <div class="progress-bar-container" id="progBarContainer">
-    <div class="progress-bar-fill" id="progressBar"></div>
-  </div>
-
-  <div class="final-content" id="realContent">
-    <div class="success-icon">✅</div>
-    <div class="final-title">Tudo pronto!</div>
-    <p class="final-desc">Seu perfil foi configurado. Você já pode acessar a ferramenta oficial do Indicador B3.</p>
-
-    <div class="download-card">
-      <h3>Indicador B3 v2.0</h3>
-      <p>Ferramenta exclusiva Rico Plus para leitura de fluxo e regiões de valor.</p>
-      
-      <a href="https://indicador-b3.vercel.app/" class="btn-access" target="_blank">ACESSAR AGORA 🚀</a>
+  <div id="app-content">
+    
+    <div style="text-align: center;">
+      <h1 style="font-size: 50px; color: var(--main-color);">📊 INDICADOR B3</h1>
+      <p style="font-size: 20px; color: #888;">Aplicação de medição de humor carregada com sucesso.</p>
     </div>
-
-    <div class="email-alert">
-      📩 Enviamos também um link de backup para seu e-mail.
-    </div>
+    
   </div>
-
   <div class="onboarding-overlay" id="overlay">
+    <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
+    
     <div class="onboarding-inner">
       
       <div class="step active" id="step1">
-        <span class="question-number"><span>1</span> CLAREZA</span>
-        <h2>Qual plataforma você usa para <strong>operar hoje?</strong></h2>
+        <span class="question-number"><span>1</span> SETUP</span>
+        <h2>Qual plataforma você usa?</h2>
         <div class="options-grid">
           <button class="option-card" onclick="next(1, 'Plataforma', 'ProfitPro')"><span class="key-hint">A</span> ProfitPro</button>
           <button class="option-card" onclick="next(1, 'Plataforma', 'Tryd')"><span class="key-hint">B</span> Tryd</button>
-          <button class="option-card" onclick="next(1, 'Plataforma', 'Outra')"><span class="key-hint">C</span> Outra / Nenhuma</button>
+          <button class="option-card" onclick="next(1, 'Plataforma', 'Outra')"><span class="key-hint">C</span> Outra</button>
         </div>
       </div>
 
       <div class="step" id="step2">
-        <span class="question-number"><span>2</span> NÍVEL ATUAL</span>
-        <h2>Há quanto tempo você estuda <strong>Day Trade?</strong></h2>
+        <span class="question-number"><span>2</span> NÍVEL</span>
+        <h2>Tempo de mercado?</h2>
         <div class="options-grid">
-          <button class="option-card" onclick="next(2, 'Tempo', 'Iniciante')"><span class="key-hint">A</span> Sou iniciante (0-6 meses)</button>
-          <button class="option-card" onclick="next(2, 'Tempo', 'Intermediário')"><span class="key-hint">B</span> Já opero (6 meses - 2 anos)</button>
-          <button class="option-card" onclick="next(2, 'Tempo', 'Experiente')"><span class="key-hint">C</span> Experiente (+2 anos)</button>
+          <button class="option-card" onclick="next(2, 'Tempo', 'Iniciante')"><span class="key-hint">A</span> Iniciante</button>
+          <button class="option-card" onclick="next(2, 'Tempo', 'Intermediário')"><span class="key-hint">B</span> Intermediário</button>
+          <button class="option-card" onclick="next(2, 'Tempo', 'Experiente')"><span class="key-hint">C</span> Experiente</button>
         </div>
       </div>
 
       <div class="step" id="step3">
-        <span class="question-number"><span>3</span> LIBERAÇÃO</span>
-        <h2>Para onde devo enviar seu <strong>acesso gratuito?</strong></h2>
-        <p style="color:#888; margin-bottom:20px;">Prometemos zero spam.</p>
-        <input type="email" id="emailInput" class="big-input" placeholder="digite seu melhor e-mail..." required>
-        <button class="btn-finish" onclick="finish()">FINALIZAR E ACESSAR 🚀</button>
+        <span class="question-number"><span>3</span> ACESSO</span>
+        <h2>Email para liberação</h2>
+        <input type="email" id="emailInput" class="big-input" placeholder="seu@email.com" required>
+        <button class="btn-finish" onclick="finish()">LIBERAR ACESSO 🚀</button>
       </div>
 
-      <div class="loading-screen" id="finalScreen">
+      <div class="loading-screen" id="loadingScreen">
         <div class="spinner"></div>
-        <h2 style="margin-bottom: 10px;">Quase lá...</h2>
-        <p style="color: #888;">Estamos gerando seu acesso exclusivo.</p>
+        <p>Validando acesso...</p>
       </div>
 
-      <div class="footer-brand">Segurança por <strong>Rico Plus</strong></div>
+      <div class="final-screen-overlay" id="finalOverlayScreen">
+        <div class="success-icon">✅</div>
+        <h2>Tudo pronto!</h2>
+        <p style="color:#aaa; margin-bottom: 30px;">Seu ambiente foi configurado com sucesso.</p>
+        
+        <button class="btn-access-app" onclick="revelarApp()">ACESSAR INDICADOR AGORA</button>
+        
+        <p style="margin-top: 20px; font-size: 13px; color: #444;">(Um backup de acesso foi enviado ao seu e-mail)</p>
+      </div>
+
     </div>
   </div>
 
   <script>
-    // === SEU LINK NOVO ATUALIZADO ABAIXO ===
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAaxiOR3IaQb0WWsX2xJ4goGKQFNtQS_RQ1sk0EIGEs1EFjZJDXSCJPEPCV6JxSX7E/exec'; 
+    // === SUA NOVA URL INTEGRADA ===
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuwmBOElhBdo-BFOiRqPXHzFvPhAJbH0YNLYr8wqi-Dcze_521b7l3Nk0IEjJIY_cw/exec';
 
-    let userAnswers = {};
+    let answers = {};
 
-    function next(step, field, value) {
-      userAnswers[field] = value;
-      const current = document.getElementById('step' + step);
-      current.style.opacity = '0'; current.style.transform = 'translateY(-40px)';
+    // Navegação entre passos
+    function next(step, field, val) {
+      answers[field] = val;
+      const current = document.getElementById('step'+step);
+      current.style.opacity = '0';
+      current.style.transform = 'translateY(-20px)';
       
       setTimeout(() => {
-        current.classList.remove('active');
-        const nextStep = document.getElementById('step' + (step + 1));
+        current.style.display = 'none';
+        const nextStep = document.getElementById('step'+(step+1));
         if(nextStep) {
           nextStep.classList.add('active');
-          document.getElementById('progressBar').style.width = ((step + 1)/3)*100 + '%';
+          document.getElementById('progressBar').style.width = ((step+1)/3)*100+'%';
         }
-      }, 500);
+      }, 400);
     }
 
+    // Envio dos dados
     function finish() {
       const email = document.getElementById('emailInput').value.trim();
-      if(!email.includes('@') || email.length < 5) { alert('E-mail inválido.'); return; }
+      if(!email.includes('@') || email.length < 5) return alert('Por favor, digite um email válido.');
       
-      userAnswers['Email'] = email;
-      const btn = document.querySelector('.btn-finish');
-      btn.innerText = "Enviando..."; btn.style.opacity = "0.6"; btn.disabled = true;
+      answers['Email'] = email;
 
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
+      // Troca tela para loading
+      document.getElementById('step3').style.display = 'none';
+      document.getElementById('loadingScreen').style.display = 'block';
+
+      // Envia para o Google Script
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userAnswers)
+        body: JSON.stringify(answers)
       }).then(() => {
-        // Remove a parte visual do formulário
-        document.getElementById('step3').style.display = 'none';
-        document.querySelector('.footer-brand').style.display = 'none';
-        document.getElementById('finalScreen').style.display = 'block';
-        
-        // Simula processamento e revela a tela final
-        setTimeout(() => {
-          const overlay = document.getElementById('overlay');
-          overlay.style.transition = 'opacity 1s ease';
-          overlay.style.opacity = '0';
-          document.getElementById('progBarContainer').style.display = 'none';
-          
-          // Mostra a tela final do Indicador
-          document.getElementById('realContent').style.opacity = '1';
-          
-          setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-        }, 3000);
-      }).catch(err => {
-        console.error(err);
-        alert('Erro ao enviar. Tente novamente.');
-        btn.innerText = "FINALIZAR E ACESSAR 🚀"; btn.disabled = false;
+        // Sucesso
+        mostrarBotaoFinal();
+      }).catch(e => {
+        console.error(e);
+        // Mesmo com erro de rede, libera o acesso para não travar o user
+        mostrarBotaoFinal();
       });
     }
 
+    function mostrarBotaoFinal() {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('finalOverlayScreen').style.display = 'block';
+    }
+
+    // FUNÇÃO QUE REMOVE A TELA PRETA (FIM DO LOOP)
+    function revelarApp() {
+      const overlay = document.getElementById('overlay');
+      overlay.style.opacity = '0';
+      
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Destrava rolagem
+      }, 1000);
+    }
+
+    // Enter para enviar
     document.getElementById('emailInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') finish();
     });
