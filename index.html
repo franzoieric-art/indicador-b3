@@ -1,223 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indicador de Humor B3</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 'primary-blue': '#3B82F6', 'dark-bg': '#0B0F19', 'card-bg': '#1F2937', 'input-bg': '#374151' },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #0B0F19; color: #F9FAFB; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-        .link-btn { font-size: 0.75rem; color: #60A5FA; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: color 0.2s; background: rgba(59, 130, 246, 0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(59, 130, 246, 0.2); }
-        .link-btn:hover { background: rgba(59, 130, 246, 0.2); color: #93C5FD; }
-        
-        /* Loading Bar */
-        .loading-bar { height: 4px; background-color: #374151; border-radius: 2px; overflow: hidden; }
-        .loading-bar-fill { height: 100%; width: 100%; background-color: #3B82F6; animation: pulse-fill 1.5s infinite ease-out; }
-        @keyframes pulse-fill { 0% { transform: translateX(-100%) } 50% { transform: translateX(100%) } 100% { transform: translateX(-100%) } }
-    </style>
-</head>
-<body class="antialiased selection:bg-blue-500 selection:text-white">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rico Plus - Setup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* === COR EXATA DO RICO PLUS === */
+      --main-color: #5a23c8; /* Roxo vibrante */
+      
+      --bg-color: #0a0a0a; /* Fundo quase preto */
+      --text-color: #ffffff;
+    }
 
-    <main class="flex items-center justify-center p-4 flex-grow">
-        <div id="app-card" class="w-full max-w-md bg-card-bg p-8 rounded-2xl shadow-2xl border border-gray-800">
-            
-            <div class="text-center mb-4">
-                <h1 class="text-3xl font-bold text-white flex items-center justify-center gap-2">
-                    Humor B3 <span class="text-blue-500">PRO</span> 🚀
-                </h1>
-            </div>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-            <div class="bg-blue-900/30 border border-blue-500/30 p-3 rounded-lg mb-6 text-sm text-blue-100 text-center leading-relaxed">
-                <p class="font-bold mb-1">ℹ️ Como preencher a Variação (%):</p>
-                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
-                    <div class="bg-green-900/30 p-2 rounded border border-green-700/30">
-                        <span class="block font-bold text-green-400">POSÍTIVO (Alta)</span>
-                        Digite apenas o número<br>
-                        Ex: <code>1.50</code> (sem o +)
-                    </div>
-                    <div class="bg-red-900/30 p-2 rounded border border-red-700/30">
-                        <span class="block font-bold text-red-400">NEGATIVO (Baixa)</span>
-                        Use o sinal de menos<br>
-                        Ex: <code>-0.85</code>
-                    </div>
-                </div>
-            </div>
+    body, html { height: 100%; width: 100%; overflow: hidden; background: var(--bg-color); color: var(--text-color); }
 
-            <div class="space-y-5">
-                
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label for="minerio" class="text-sm font-medium text-gray-300">Minério de Ferro (Singapura)</label>
-                        <a href="https://br.tradingview.com/chart/?symbol=SGX%3AFEF1!" target="_blank" class="link-btn">
-                            <i class="fas fa-external-link-alt"></i> Ver FEF1!
-                        </a>
-                    </div>
-                    <input type="number" step="0.01" id="minerio" placeholder="% Ex: 1.20 ou -0.50" class="w-full px-4 py-3 bg-input-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition">
-                </div>
+    /* Container principal centralizado */
+    .onboarding-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100vh;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 30px;
+      position: relative;
+    }
 
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label for="brent" class="text-sm font-medium text-gray-300">Petróleo Brent (Mundo/Londres)</label>
-                        <a href="https://br.tradingview.com/chart/?symbol=TVC%3AUKOIL" target="_blank" class="link-btn">
-                            <i class="fas fa-external-link-alt"></i> Ver UKOIL
-                        </a>
-                    </div>
-                    <input type="number" step="0.01" id="brent" placeholder="% Ex: -0.80 ou 0.50" class="w-full px-4 py-3 bg-input-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition">
-                </div>
+    /* Barra de Progresso no topo */
+    .progress-bar-container {
+      position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: #222; z-index: 10;
+    }
+    .progress-bar-fill {
+      height: 100%; background: var(--main-color); width: 33%; transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
 
-                <div class="p-3 bg-blue-900/20 border border-blue-900/50 rounded-lg">
-                    <div class="flex justify-between items-center mb-1">
-                        <label for="spx" class="text-sm font-bold text-blue-200">S&P 500 Futuro (E-Mini)</label>
-                        <a href="https://br.tradingview.com/chart/?symbol=CME_MINI%3AES1!" target="_blank" class="link-btn text-blue-300 hover:text-blue-100 border-blue-500/30">
-                            <i class="fas fa-external-link-alt"></i> Ver ES1!
-                        </a>
-                    </div>
-                    <input type="number" step="0.01" id="spx" placeholder="% Ex: 0.25 ou -1.10" class="w-full px-4 py-3 bg-input-bg border border-blue-500/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition">
-                </div>
+    /* Estilo dos Steps (As perguntas) */
+    .step {
+      display: none; /* Escondido por padrão */
+      opacity: 0;
+      transform: translateY(30px); /* Começa um pouco mais baixo */
+      transition: all 0.5s ease-out;
+    }
+    /* Classe para mostrar a pergunta atual */
+    .step.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label for="vix" class="text-sm font-medium text-gray-300">VIX (Índice do Medo)</label>
-                        <a href="https://br.tradingview.com/chart/?symbol=CBOE%3AVIX" target="_blank" class="link-btn">
-                            <i class="fas fa-external-link-alt"></i> Ver VIX
-                        </a>
-                    </div>
-                    <input type="number" step="0.01" id="vix" placeholder="% Ex: -2.00 ou 5.40" class="w-full px-4 py-3 bg-input-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition">
-                </div>
+    /* Numeração pequena acima da pergunta */
+    .question-number {
+      color: var(--main-color); font-size: 14px; font-weight: 700; margin-bottom: 15px; display: block; letter-spacing: 1px;
+    }
+    .question-number span { border: 1px solid var(--main-color); padding: 2px 7px; border-radius: 4px; margin-right: 10px; }
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="dxy" class="text-sm font-medium text-gray-300">DXY</label>
-                            <a href="https://br.tradingview.com/chart/?symbol=TVC%3ADXY" target="_blank" class="link-btn">
-                                <i class="fas fa-external-link-alt"></i> Ver DXY
-                            </a>
-                        </div>
-                        <input type="number" step="0.01" id="dxy" placeholder="% Ex: 0.10" class="w-full px-4 py-3 bg-input-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition">
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label for="dolar" class="text-sm font-medium text-gray-300">USD/BRL</label>
-                            <a href="https://br.tradingview.com/chart/?symbol=FX_IDC%3AUSDBRL" target="_blank" class="link-btn">
-                                <i class="fas fa-external-link-alt"></i> Ver USDBRL
-                            </a>
-                        </div>
-                        <input type="number" step="0.01" id="dolar" placeholder="% Ex: 0.50" class="w-full px-4 py-3 bg-input-bg border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition">
-                    </div>
-                </div>
-            </div>
-
-            <button id="analyze-btn" onclick="handleAnalysis()" class="mt-8 w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900">
-                ⚡ Analisar Mercado Agora
-            </button>
-
-            <div id="result-container" class="mt-6 p-4 bg-dark-bg/50 border border-gray-700 rounded-xl text-sm min-h-[60px]">
-                <p class="text-gray-500 text-center italic mt-2" id="initial-message">
-                    Insira os dados acima e clique em Analisar.
-                </p>
-            </div>
-
-            <p id="status-message" class="text-center text-red-400 font-medium mt-2 text-sm"></p>
-        </div>
-    </main>
-
-    <footer class="py-6 text-center text-xs text-gray-600 border-t border-gray-900 bg-black/20 mt-auto">
-        Desenvolvido para Traders Profissionais por <a href="https://ricoplus.com.br" class="text-blue-500 hover:underline font-bold" target="_blank">Rico Plus</a>
-    </footer>
+    /* Título da pergunta */
+    h2 { font-size: 32px; font-weight: 300; line-height: 1.3; margin-bottom: 40px; color: #eee; }
+    h2 strong { font-weight: 700; color: #fff; }
     
-    <script>
-        const resultContainer = document.getElementById('result-container');
-        const statusMessage = document.getElementById('status-message');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const initialMessage = document.getElementById('initial-message');
+    /* Descrição extra */
+    .desc { color: #888; margin-bottom: 25px; font-size: 16px; margin-top: -20px; }
 
-        function getApiUrl() { return '/api/humor'; }
+    /* Grid de Opções */
+    .options-grid { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    
+    /* Cartões de Opção (Botões) */
+    .option-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #333;
+      padding: 18px 25px;
+      border-radius: 8px;
+      color: #fff; font-size: 18px; font-weight: 500;
+      cursor: pointer; text-align: left;
+      transition: all 0.3s;
+      display: flex; align-items: center;
+    }
+    .option-card:hover {
+      background: rgba(90, 35, 200, 0.1); /* Leve toque roxo no hover */
+      border-color: var(--main-color);
+      transform: translateX(5px); /* Pequeno movimento para direita */
+    }
+    /* Letrinhas de atalho (A, B, C) */
+    .key-hint {
+      background: #222; font-size: 12px; padding: 4px 8px; border-radius: 4px; margin-right: 15px; color: #888; font-weight: 700;
+    }
 
-        function validateInputs(inputs) {
-            let isValid = true;
-            for (const key in inputs) {
-                const inputElement = document.getElementById(key);
-                if (!inputElement) continue;
-                const value = inputElement.value.trim();
-                // Verifica se é número válido
-                if (value === "" || isNaN(parseFloat(value))) { 
-                    inputElement.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                    inputElement.classList.remove('border-gray-600');
-                    isValid = false;
-                } else {
-                    inputElement.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-                    inputElement.classList.add('border-gray-600');
-                }
-            }
-            if (!isValid) statusMessage.textContent = "⚠️ Por favor, preencha todos os campos com números válidos.";
-            return isValid;
+    /* Input de E-mail Gigante */
+    .big-input {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 3px solid #444;
+      color: var(--main-color); /* Texto roxo ao digitar */
+      font-size: 36px; font-weight: 300;
+      padding: 15px 0; outline: none;
+      transition: border-color 0.3s;
+    }
+    .big-input::placeholder { color: #444; }
+    .big-input:focus { border-bottom-color: var(--main-color); }
+
+    /* Botão Final (Estilo Rico Plus) */
+    .btn-finish {
+      margin-top: 50px;
+      background-color: var(--main-color);
+      color: white; font-size: 22px; font-weight: 700;
+      border: none; padding: 20px 40px; width: 100%;
+      border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3);
+    }
+    .btn-finish:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(90, 35, 200, 0.5); }
+    
+    /* Rodapé */
+    .footer-brand { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; font-size: 14px; color: #666; }
+    .footer-brand strong { color: var(--main-color); }
+
+    /* Tela de Carregamento Final */
+    .loading-screen { display: none; text-align: center; }
+    .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--main-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 30px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
+
+  <div class="onboarding-container">
+    
+    <div class="step active" id="step1">
+      <span class="question-number"><span>1</span> CLAREZA</span>
+      <h2>Qual plataforma você usa para <strong>operar hoje?</strong></h2>
+      <div class="options-grid">
+        <button class="option-card" onclick="next(1, 'Plataforma', 'ProfitChart')"><span class="key-hint">A</span> ProfitChart</button>
+        <button class="option-card" onclick="next(1, 'Plataforma', 'MetaTrader')"><span class="key-hint">B</span> MetaTrader</button>
+        <button class="option-card" onclick="next(1, 'Plataforma', 'Outra/Nenhuma')"><span class="key-hint">C</span> Outra / Nenhuma</button>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <span class="question-number"><span>2</span> NÍVEL ATUAL</span>
+      <h2>Há quanto tempo você estuda <strong>Day Trade?</strong></h2>
+      <div class="options-grid">
+        <button class="option-card" onclick="next(2, 'Tempo', 'Iniciante')"><span class="key-hint">A</span> Sou iniciante (0-6 meses)</button>
+        <button class="option-card" onclick="next(2, 'Tempo', 'Intermediário')"><span class="key-hint">B</span> Já opero (6 meses - 2 anos)</button>
+        <button class="option-card" onclick="next(2, 'Tempo', 'Experiente')"><span class="key-hint">C</span> Experiente (+2 anos)</button>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <span class="question-number"><span>3</span> LIBERAÇÃO</span>
+      <h2>Para onde devo enviar seu <strong>acesso gratuito?</strong></h2>
+      <p class="desc">Pode ficar tranquilo, odiamos spam tanto quanto você.</p>
+      
+      <input type="email" id="emailInput" class="big-input" placeholder="digite seu melhor e-mail..." required>
+      
+      <button class="btn-finish" onclick="finish()">FINALIZAR E ACESSAR 🚀</button>
+    </div>
+
+    <div class="loading-screen" id="finalScreen">
+      <div class="spinner"></div>
+      <h2 style="margin-bottom: 10px;">Quase lá...</h2>
+      <p style="color: #888;">Estamos preparando seu ambiente no Rico Plus.</p>
+    </div>
+
+    <div class="footer-brand">Segurança por <strong>Rico Plus</strong></div>
+  </div>
+
+  <script>
+    // URL ATUALIZADA DO SEU SCRIPT
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybxEDLJ7gtHZheLl2bO7K93S56Z77inMMe1kzLIjEGoIou7Z95QtnWNGbFiHBcu0Ds/exec'; 
+
+    let userAnswers = {};
+
+    function next(currentStepNum, field, value) {
+      userAnswers[field] = value;
+      
+      const currentStepEl = document.getElementById('step' + currentStepNum);
+      currentStepEl.style.opacity = '0';
+      currentStepEl.style.transform = 'translateY(-40px)'; 
+
+      setTimeout(() => {
+        currentStepEl.classList.remove('active');
+        
+        const nextStepNum = currentStepNum + 1;
+        const nextStepEl = document.getElementById('step' + nextStepNum);
+        
+        if(nextStepEl) {
+          nextStepEl.classList.add('active');
+          const progress = (nextStepNum / 3) * 100;
+          document.getElementById('progressBar').style.width = progress + '%';
         }
+      }, 500); 
+    }
 
-        function handleAnalysis() {
-            const inputs = {
-                minerio: document.getElementById("minerio").value,
-                brent: document.getElementById("brent").value,
-                vix: document.getElementById("vix").value,
-                spx: document.getElementById("spx").value,
-                dxy: document.getElementById("dxy").value,
-                dolar: document.getElementById("dolar").value
-            };
+    function finish() {
+      const emailInput = document.getElementById('emailInput');
+      const emailValue = emailInput.value.trim();
 
-            if (!validateInputs(inputs)) return;
-            callApiHumor(inputs);
-        }
+      if(!emailValue.includes('@') || emailValue.length < 5) {
+        alert('Por favor, digite um e-mail válido para continuar.');
+        emailInput.focus();
+        return;
+      }
+      
+      userAnswers['Email'] = emailValue;
+      
+      const btn = document.querySelector('.btn-finish');
+      btn.innerHTML = "Enviando...";
+      btn.style.opacity = "0.8";
+      btn.disabled = true;
 
-        async function callApiHumor(inputs) {
-            statusMessage.textContent = '';
-            
-            resultContainer.innerHTML = `
-                <div class="space-y-4 py-2">
-                    <p class="text-center text-blue-400 font-semibold animate-pulse">
-                        🧠 IA Processando Correlações...
-                    </p>
-                    <div class="loading-bar">
-                        <div class="loading-bar-fill"></div>
-                    </div>
-                </div>
-            `;
-            analyzeBtn.disabled = true;
-            analyzeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userAnswers)
+      }).then(() => {
+        document.getElementById('step3').style.display = 'none';
+        document.querySelector('.footer-brand').style.display = 'none';
+        document.getElementById('finalScreen').style.display = 'block';
+        
+        setTimeout(() => {
+          // REMOVER OVERLAY E LIBERAR O SITE
+          const overlay = document.querySelector('.onboarding-container');
+          overlay.style.transition = 'opacity 1s ease';
+          overlay.style.opacity = '0';
+          document.querySelector('.progress-bar-container').style.opacity = '0';
+          
+          setTimeout(() => {
+             document.body.style.overflow = 'auto'; 
+             overlay.style.display = 'none'; 
+             document.querySelector('.progress-bar-container').style.display = 'none';
+          }, 1000);
+          
+          // Se quiser redirecionar, use: window.location.href = "URL_DO_SITE";
+        }, 3000);
 
-            try {
-                const response = await fetch(getApiUrl(), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(inputs)
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok || data.success === false) {
-                    throw new Error(data.details || data.message || "Falha na análise.");
-                }
-                
-                resultContainer.innerHTML = data.html;
-            } catch (error) {
-                console.error(error);
-                statusMessage.textContent = "Erro de conexão. Tente novamente.";
-                resultContainer.innerHTML = '<p class="text-center text-gray-500">Tente novamente.</p>';
-            } finally {
-                analyzeBtn.disabled = false;
-                analyzeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-    </script>
+      }).catch(err => {
+        console.error('Erro:', err);
+        alert('Houve um erro na conexão. Tente novamente.');
+        btn.innerHTML = "FINALIZAR E ACESSAR 🚀";
+        btn.disabled = false;
+      });
+    }
+
+    document.getElementById('emailInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') finish();
+    });
+  </script>
 </body>
 </html>
