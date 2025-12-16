@@ -28,7 +28,7 @@
       display: flex; align-items: center; justify-content: center;
       z-index: 1; 
       background-image: radial-gradient(circle at top right, #1a0b36 0%, transparent 40%);
-      overflow-y: auto; /* Permite rolar se a tela for pequena */
+      overflow-y: auto;
     }
 
     .calculator-container {
@@ -49,7 +49,6 @@
     }
     .label-row label { font-size: 14px; color: #aaa; font-weight: 500; }
     
-    /* Links do TradingView funcionando */
     .link-helper { color: #5a8dee; font-size: 12px; text-decoration: none; cursor: pointer; transition: 0.2s; }
     .link-helper:hover { text-decoration: underline; color: #fff; }
 
@@ -78,9 +77,9 @@
 
     .footer-note { text-align: center; margin-top: 20px; font-size: 12px; color: #444; }
 
-    /* === RESULTADO (RESULT BOX) === */
+    /* === RESULTADO === */
     #result-box {
-      display: none; /* Escondido por padrão */
+      display: none; 
       margin-top: 20px; padding: 20px;
       background: rgba(255,255,255,0.05); border-radius: 8px;
       border: 1px solid #333; text-align: center;
@@ -132,45 +131,45 @@
       
       <div class="input-group">
         <div class="label-row">
-          <label>Petróleo Brent (UKOIL)</label>
+          <label>Petróleo Brent (UKOIL %)</label>
           <a href="https://br.tradingview.com/symbols/TVC-UKOIL/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
-        <input type="number" id="inpBrent" class="custom-input" placeholder="-0,20" step="0.01">
+        <input type="number" id="inpBrent" class="custom-input" placeholder="Ex: -0.20" step="0.01">
       </div>
 
       <div class="input-group">
         <div class="label-row">
-          <label>S&P 500 Futuro (ES1!)</label>
+          <label>S&P 500 Futuro (ES1! %)</label>
           <a href="https://br.tradingview.com/symbols/CME_MINI-ES1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
-        <input type="number" id="inpSp" class="custom-input" placeholder="0,34" step="0.01">
+        <input type="number" id="inpSp" class="custom-input" placeholder="Ex: 0.34" step="0.01">
       </div>
 
       <div class="input-group">
         <div class="label-row">
-          <label>VIX (Índice do Medo)</label>
+          <label>VIX (Índice do Medo %)</label>
           <a href="https://br.tradingview.com/symbols/TVC-VIX/" target="_blank" class="link-helper">↗ Ver Cotação</a>
         </div>
-        <input type="number" id="inpVix" class="custom-input" placeholder="4,83" step="0.01">
+        <input type="number" id="inpVix" class="custom-input" placeholder="Ex: 4.83" step="0.01">
       </div>
 
       <div class="row-split">
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>DXY</label>
+              <label>DXY (%)</label>
               <a href="https://br.tradingview.com/symbols/TVC-DXY/" target="_blank" class="link-helper">↗ Ver</a>
             </div>
-            <input type="number" id="inpDxy" class="custom-input" placeholder="0,02">
+            <input type="number" id="inpDxy" class="custom-input" placeholder="Ex: 0.02">
           </div>
         </div>
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>USD/BRL</label>
+              <label>USD/BRL (Preço)</label>
               <a href="https://br.tradingview.com/symbols/FX_IDC-USDBRL/" target="_blank" class="link-helper">↗ Ver</a>
             </div>
-            <input type="number" id="inpDol" class="custom-input" placeholder="0">
+            <input type="number" id="inpDol" class="custom-input" placeholder="Ex: 5.75">
           </div>
         </div>
       </div>
@@ -249,44 +248,72 @@
 
     // === LÓGICA DA CALCULADORA DO INDICADOR ===
     function calcularFluxo() {
-        // 1. Pegar valores
-        let brent = parseFloat(document.getElementById('inpBrent').value) || 0;
-        let sp = parseFloat(document.getElementById('inpSp').value) || 0;
-        let vix = parseFloat(document.getElementById('inpVix').value) || 0;
-        let dxy = parseFloat(document.getElementById('inpDxy').value) || 0;
+        // 1. Pegar os elementos
+        const elBrent = document.getElementById('inpBrent');
+        const elSp = document.getElementById('inpSp');
+        const elVix = document.getElementById('inpVix');
+        const elDxy = document.getElementById('inpDxy');
 
-        // 2. Lógica Básica de Mercado (Sentimento)
-        // Regra Simples: S&P positivo ajuda compra. VIX/DXY negativo ajuda compra.
-        // Se a soma dos fatores positivos for maior que os negativos = Compra.
-        
+        // 2. Validar se preencheu
+        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "") {
+            alert("⚠️ Atenção: Preencha todos os campos (Brent, S&P, VIX e DXY) para ter uma análise precisa.");
+            return;
+        }
+
+        // 3. Converter para números
+        let brent = parseFloat(elBrent.value);
+        let sp = parseFloat(elSp.value);
+        let vix = parseFloat(elVix.value);
+        let dxy = parseFloat(elDxy.value);
+
+        // 4. Calcular Score (Pontuação de Mercado)
         let score = 0;
-        if (sp > 0) score += 2; else score -= 2;
-        if (brent > 0) score += 1; else score -= 1;
-        if (vix < 0) score += 1; else score -= 2; // Vix caindo é bom
-        if (dxy < 0) score += 1; else score -= 1; // Dólar caindo no mundo é bom pra ativos de risco
 
-        // 3. Exibir Resultado
+        // Lógica de Mercado:
+        // S&P subindo = BOM (+2)
+        // S&P caindo = RUIM (-2)
+        if (sp > 0) score += 2; else score -= 2;
+
+        // Brent subindo = BOM pra Petr (+1)
+        // Brent caindo = RUIM (-1)
+        if (brent > 0) score += 1; else score -= 1;
+
+        // VIX subindo = MEDO (RUIM) (-2)
+        // VIX caindo = TRANQUILIDADE (BOM) (+1)
+        if (vix < 0) score += 1; else score -= 2; 
+
+        // DXY (Dólar Global) subindo = Tira liquidez (RUIM) (-1)
+        // DXY caindo = Injeta liquidez (BOM) (+1)
+        if (dxy < 0) score += 1; else score -= 1;
+
+        // 5. Exibir Resultado
         const box = document.getElementById('result-box');
         const title = document.getElementById('result-title');
         const desc = document.getElementById('result-desc');
 
         box.style.display = 'block';
 
-        if (score > 1) {
+        if (score >= 1) {
+            // COMPRA
             box.style.borderColor = '#00b894';
+            box.style.backgroundColor = 'rgba(0, 184, 148, 0.1)';
             title.style.color = '#00b894';
-            title.innerHTML = "ALTA PROBABILIDADE DE COMPRA 🐂";
-            desc.innerHTML = "Mercado externo favorável com S&P positivo e VIX controlado.";
-        } else if (score < -1) {
+            title.innerHTML = "VIÉS COMPRADOR (BULLISH) 🐂";
+            desc.innerHTML = "Cenário externo positivo. S&P e Commodities ajudando a bolsa.";
+        } else if (score <= -2) {
+            // VENDA
             box.style.borderColor = '#d63031';
+            box.style.backgroundColor = 'rgba(214, 48, 49, 0.1)';
             title.style.color = '#d63031';
-            title.innerHTML = "ALTA PROBABILIDADE DE VENDA 🐻";
-            desc.innerHTML = "Aversão a risco detectada. Cuidado com compras.";
+            title.innerHTML = "VIÉS VENDEDOR (BEARISH) 🐻";
+            desc.innerHTML = "Aversão a risco no exterior. Dólar ou VIX pressionando.";
         } else {
+            // NEUTRO
             box.style.borderColor = '#f1c40f';
+            box.style.backgroundColor = 'rgba(241, 196, 15, 0.1)';
             title.style.color = '#f1c40f';
             title.innerHTML = "MERCADO NEUTRO / LATERAL ⚖️";
-            desc.innerHTML = "Sinais mistos. Aguarde confirmação no gráfico.";
+            desc.innerHTML = "Sinais mistos. Aguarde confirmação no gráfico antes de operar.";
         }
     }
 
