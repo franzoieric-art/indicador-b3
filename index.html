@@ -153,16 +153,17 @@
             <input type="number" id="inpDxy" class="custom-input" placeholder="Ex: 0.02">
           </div>
         </div>
+        
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>USD/BRL (Preço)</label>
-              <a href="https://br.tradingview.com/symbols/FX_IDC-USDBRL/" target="_blank" class="link-helper">↗ Ver</a>
+              <label>EWS (ETF Brazil)</label>
+              <a href="https://br.tradingview.com/symbols/AMEX-EWS/" target="_blank" class="link-helper">↗ Ver Pré-Mkt</a>
             </div>
-            <input type="number" id="inpDol" class="custom-input" placeholder="Ex: 5.75">
+            <input type="number" id="inpEws" class="custom-input" placeholder="Ex: -1.20">
           </div>
         </div>
-      </div>
+        </div>
 
       <button class="btn-analyze" onclick="calcularFluxo()">
         ⚡ Analisar Mercado Agora
@@ -174,11 +175,11 @@
       </div>
 
       <div class="footer-note">
-  Desenvolvido por Traders Profissionais - 
-  <a href="https://www.ricoplus.com.br" target="_blank" style="color: #666; text-decoration: none; transition: 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">
-    Rico Plus
-  </a>
-</div>
+        Desenvolvido por Traders Profissionais - 
+        <a href="https://www.ricoplus.com.br" target="_blank" style="color: #666; text-decoration: none; transition: 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#666'">
+          Rico Plus
+        </a>
+      </div>
     </div>
   </div>
 
@@ -239,28 +240,27 @@
   </div>
 
   <script>
-    // === URL ATUALIZADA QUE VOCÊ FORNECEU ===
+    // === URL DO SEU SCRIPT GOOGLE ===
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0KojBYSF9ZwlT0gM5z_OyU1p00gaNvQ8f1Kpi74r6E2dt0v1gyD9A7k9JO7P2fj7S/exec';
 
-    // === 1. DETECTOR DE PASSE VIP (A Mágica acontece aqui) ===
-    // Assim que a página carrega, verificamos se veio do e-mail
+    // === 1. DETECTOR DE PASSE VIP ===
     window.onload = function() {
       const params = new URLSearchParams(window.location.search);
-      // Se tiver "?acesso=vip" no link, destruímos o formulário
       if (params.get('acesso') === 'vip') {
         document.getElementById('overlay').style.display = 'none';
-        document.body.style.overflow = 'auto'; // Destrava a rolagem
+        document.body.style.overflow = 'auto';
       }
     };
 
-    // === 2. LÓGICA DA CALCULADORA ===
+    // === 2. LÓGICA DA CALCULADORA COM EWS ===
     function calcularFluxo() {
         const elBrent = document.getElementById('inpBrent');
         const elSp = document.getElementById('inpSp');
         const elVix = document.getElementById('inpVix');
         const elDxy = document.getElementById('inpDxy');
+        const elEws = document.getElementById('inpEws'); // Novo campo
 
-        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "") {
+        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "" || elEws.value === "") {
             alert("⚠️ Atenção: Preencha todos os campos para ter uma análise precisa.");
             return;
         }
@@ -269,13 +269,16 @@
         let sp = parseFloat(elSp.value);
         let vix = parseFloat(elVix.value);
         let dxy = parseFloat(elDxy.value);
+        let ews = parseFloat(elEws.value);
 
         let score = 0;
         
-        if (sp > 0) score += 2; else score -= 2;
-        if (brent > 0) score += 1; else score -= 1;
-        if (vix < 0) score += 1; else score -= 2;
-        if (dxy < 0) score += 1; else score -= 1;
+        // Regras Ajustadas (EWS substitui o peso do dólar na abertura):
+        if (sp > 0) score += 2; else score -= 2;   // S&P (Peso 2)
+        if (ews > 0) score += 2; else score -= 2;  // EWS (Peso 2 - Termômetro Brasil)
+        if (brent > 0) score += 1; else score -= 1; 
+        if (vix < 0) score += 1; else score -= 2; // Medo cai = Bom
+        if (dxy < 0) score += 1; else score -= 1; // Dólar mundial cai = Bom
 
         const box = document.getElementById('result-box');
         const title = document.getElementById('result-title');
@@ -283,24 +286,24 @@
 
         box.style.display = 'block';
 
-        if (score >= 1) {
+        if (score >= 2) {
             box.style.borderColor = '#00b894';
             box.style.backgroundColor = 'rgba(0, 184, 148, 0.1)';
             title.style.color = '#00b894';
-            title.innerHTML = "VIÉS COMPRADOR (BULLISH) 🐂";
-            desc.innerHTML = "Cenário externo positivo. S&P e Commodities ajudando.";
+            title.innerHTML = "GAP DE ALTA / COMPRA 🐂";
+            desc.innerHTML = "EWS e S&P positivos indicam forte entrada de fluxo na abertura.";
         } else if (score <= -2) {
             box.style.borderColor = '#d63031';
             box.style.backgroundColor = 'rgba(214, 48, 49, 0.1)';
             title.style.color = '#d63031';
-            title.innerHTML = "VIÉS VENDEDOR (BEARISH) 🐻";
-            desc.innerHTML = "Aversão a risco no exterior. Cuidado com compras.";
+            title.innerHTML = "GAP DE BAIXA / VENDA 🐻";
+            desc.innerHTML = "EWS e S&P negativos. O mercado deve abrir pesado.";
         } else {
             box.style.borderColor = '#f1c40f';
             box.style.backgroundColor = 'rgba(241, 196, 15, 0.1)';
             title.style.color = '#f1c40f';
-            title.innerHTML = "MERCADO NEUTRO / LATERAL ⚖️";
-            desc.innerHTML = "Sinais mistos. Aguarde confirmação no gráfico.";
+            title.innerHTML = "ABERTURA NEUTRA / MISTA ⚖️";
+            desc.innerHTML = "Sinais divergentes entre EWS e Exterior. Aguarde o preço trabalhar.";
         }
     }
 
