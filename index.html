@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Indicador B3 - Rico Plus</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Indicador B3 Pro - Rico Plus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     /* === ESTILOS GERAIS === */
     :root { 
@@ -31,18 +31,54 @@
 
     .calculator-container {
       background: var(--card-bg);
-      width: 100%; max-width: 480px;
-      padding: 30px; margin: 20px;
+      width: 100%; max-width: 500px;
+      padding: 35px 30px;
+      margin: 20px;
       border-radius: 16px;
       border: 1px solid var(--border-color);
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       position: relative;
     }
 
-    .input-group { margin-bottom: 20px; }
+    /* === TÍTULO DE JOIA === */
+    .pro-title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 5px; /* Reduzi a margem para colar no subtítulo */
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #5a23c8 0%, #ff57b9 25%, #42e6ff 50%, #5a23c8 75%, #240a5e 100%);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 4s linear infinite;
+    }
+
+    /* === NOVO SUBTÍTULO === */
+    .pro-subtitle {
+      text-align: center;
+      font-size: 11px;
+      color: #666; /* Cinza metálico */
+      text-transform: uppercase;
+      letter-spacing: 2px; /* Espaçamento chique */
+      font-weight: 600;
+      margin-bottom: 35px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 15px; /* Linha sutil separando */
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .input-group { margin-bottom: 0; }
     .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .label-row label { font-size: 14px; color: #aaa; font-weight: 500; }
-    .link-helper { color: #5a8dee; font-size: 12px; text-decoration: none; cursor: pointer; transition: 0.2s; }
+    .label-row label { font-size: 13px; color: #aaa; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .link-helper { color: #5a8dee; font-size: 11px; text-decoration: none; cursor: pointer; transition: 0.2s; white-space: nowrap;}
     .link-helper:hover { text-decoration: underline; color: #fff; }
 
     .custom-input {
@@ -53,8 +89,8 @@
     }
     .custom-input:focus { border-color: var(--main-color); background: #222; }
 
-    .row-split { display: flex; gap: 15px; }
-    .col-half { flex: 1; }
+    .row-split { display: flex; gap: 15px; margin-bottom: 20px; }
+    .col-half { flex: 1; min-width: 0; }
 
     .btn-analyze {
       width: 100%; background: linear-gradient(90deg, #5a23c8 0%, #7b2cbf 100%);
@@ -69,7 +105,6 @@
 
     .footer-note { text-align: center; margin-top: 20px; font-size: 12px; color: #444; }
 
-    /* Resultado Box */
     #result-box {
       display: none; margin-top: 20px; padding: 20px;
       background: rgba(255,255,255,0.05); border-radius: 8px;
@@ -78,9 +113,7 @@
     #result-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
     #result-desc { font-size: 14px; color: #bbb; }
 
-    /* ======================================================= */
-    /* ESTILOS DO OVERLAY (FORMULÁRIO)                        */
-    /* ======================================================= */
+    /* === ESTILOS DO OVERLAY (FORMULÁRIO) === */
     .onboarding-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--bg-color); z-index: 9999; 
@@ -119,48 +152,67 @@
   <div id="app-content">
     <div class="calculator-container">
       
-      <div class="input-group">
-        <div class="label-row">
-          <label>Petróleo Brent (UKOIL)</label>
-          <a href="https://br.tradingview.com/symbols/TVC-UKOIL/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+      <h1 class="pro-title">Indicador B3 Pro</h1>
+      <p class="pro-subtitle">Especialista em Abertura de Mercado</p>
+      <div class="row-split">
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>S&P 500 (ES1!)</label>
+              <a href="https://br.tradingview.com/symbols/CME_MINI-ES1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+            </div>
+            <input type="number" id="inpSp" class="custom-input" placeholder="Ex: 0.34" step="0.01">
+          </div>
         </div>
-        <input type="number" id="inpBrent" class="custom-input" placeholder="Ex: -0.20" step="0.01">
-      </div>
-
-      <div class="input-group">
-        <div class="label-row">
-          <label>S&P 500 Futuro (ES1!)</label>
-          <a href="https://br.tradingview.com/symbols/CME_MINI-ES1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>EWZ (ETF Brasil)</label>
+              <a href="https://br.tradingview.com/symbols/AMEX-EWZ/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+            </div>
+            <input type="number" id="inpEwz" class="custom-input" placeholder="Ex: -1.20">
+          </div>
         </div>
-        <input type="number" id="inpSp" class="custom-input" placeholder="Ex: 0.34" step="0.01">
-      </div>
-
-      <div class="input-group">
-        <div class="label-row">
-          <label>VIX (Índice do Medo)</label>
-          <a href="https://br.tradingview.com/symbols/TVC-VIX/" target="_blank" class="link-helper">↗ Ver Cotação</a>
-        </div>
-        <input type="number" id="inpVix" class="custom-input" placeholder="Ex: 4.83" step="0.01">
       </div>
 
       <div class="row-split">
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>DXY (%)</label>
-              <a href="https://br.tradingview.com/symbols/TVC-DXY/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+              <label>Brent (UKOIL)</label>
+              <a href="https://br.tradingview.com/symbols/TVC-UKOIL/" target="_blank" class="link-helper">↗ Ver Cotação</a>
             </div>
-            <input type="number" id="inpDxy" class="custom-input" placeholder="Ex: 0.02">
+            <input type="number" id="inpBrent" class="custom-input" placeholder="Ex: -0.20" step="0.01">
           </div>
         </div>
-        
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>EWZ (ETF Brazil)</label>
-              <a href="https://br.tradingview.com/symbols/AMEX-EWZ/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+              <label>Minério (SGX)</label>
+              <a href="https://br.tradingview.com/symbols/SGX-TIO1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
             </div>
-            <input type="number" id="inpEwz" class="custom-input" placeholder="Ex: -1.20">
+            <input type="number" id="inpIron" class="custom-input" placeholder="Ex: 1.50">
+          </div>
+        </div>
+      </div>
+
+      <div class="row-split">
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>VIX (Medo)</label>
+              <a href="https://br.tradingview.com/symbols/TVC-VIX/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+            </div>
+            <input type="number" id="inpVix" class="custom-input" placeholder="Ex: 4.83" step="0.01">
+          </div>
+        </div>
+        <div class="col-half">
+          <div class="input-group">
+            <div class="label-row">
+              <label>DXY (Dólar)</label>
+              <a href="https://br.tradingview.com/symbols/TVC-DXY/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+            </div>
+            <input type="number" id="inpDxy" class="custom-input" placeholder="Ex: 0.02">
           </div>
         </div>
       </div>
@@ -187,7 +239,6 @@
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
     
     <div class="onboarding-inner">
-      
       <div class="step active" id="step1">
         <span class="question-number"><span>1</span> SETUP</span>
         <h2>Qual plataforma você usa?</h2>
@@ -235,7 +286,6 @@
             📩 Enviamos também um link de backup para seu e-mail.
         </div>
       </div>
-
     </div>
   </div>
 
@@ -252,33 +302,35 @@
       }
     };
 
-    // === 2. LÓGICA DA CALCULADORA COM EWZ (CORRIGIDO) ===
+    // === 2. LÓGICA DA CALCULADORA ATUALIZADA ===
     function calcularFluxo() {
-        const elBrent = document.getElementById('inpBrent');
         const elSp = document.getElementById('inpSp');
+        const elEwz = document.getElementById('inpEwz');
+        const elBrent = document.getElementById('inpBrent');
+        const elIron = document.getElementById('inpIron');
         const elVix = document.getElementById('inpVix');
         const elDxy = document.getElementById('inpDxy');
-        const elEwz = document.getElementById('inpEwz'); // Mudou de Ews para Ewz
 
-        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "" || elEwz.value === "") {
+        if(elSp.value === "" || elEwz.value === "" || elBrent.value === "" || elIron.value === "" || elVix.value === "" || elDxy.value === "") {
             alert("⚠️ Atenção: Preencha todos os campos para ter uma análise precisa.");
             return;
         }
 
-        let brent = parseFloat(elBrent.value);
         let sp = parseFloat(elSp.value);
+        let ewz = parseFloat(elEwz.value);
+        let brent = parseFloat(elBrent.value);
+        let iron = parseFloat(elIron.value);
         let vix = parseFloat(elVix.value);
         let dxy = parseFloat(elDxy.value);
-        let ewz = parseFloat(elEwz.value);
 
         let score = 0;
         
-        // Regras Ajustadas (EWZ substitui o peso do dólar na abertura):
-        if (sp > 0) score += 2; else score -= 2;   // S&P (Peso 2)
-        if (ewz > 0) score += 2; else score -= 2;  // EWZ (Peso 2 - Termômetro Brasil)
-        if (brent > 0) score += 1; else score -= 1; 
-        if (vix < 0) score += 1; else score -= 2; // Medo cai = Bom
-        if (dxy < 0) score += 1; else score -= 1; // Dólar mundial cai = Bom
+        if (sp > 0) score += 2; else score -= 2;
+        if (ewz > 0) score += 2; else score -= 2;
+        if (brent > 0) score += 1; else score -= 1;
+        if (iron > 0) score += 1; else score -= 1;
+        if (vix < 0) score += 1; else score -= 2;
+        if (dxy < 0) score += 1; else score -= 1;
 
         const box = document.getElementById('result-box');
         const title = document.getElementById('result-title');
@@ -286,30 +338,29 @@
 
         box.style.display = 'block';
 
-        if (score >= 2) {
+        if (score >= 3) {
             box.style.borderColor = '#00b894';
             box.style.backgroundColor = 'rgba(0, 184, 148, 0.1)';
             title.style.color = '#00b894';
-            title.innerHTML = "GAP DE ALTA / COMPRA 🐂";
-            desc.innerHTML = "EWZ e S&P positivos indicam forte entrada de fluxo na abertura.";
-        } else if (score <= -2) {
+            title.innerHTML = "VIÉS COMPRADOR (BULLISH) 🐂";
+            desc.innerHTML = "Cenário favorável. Commodities e Exterior em alta.";
+        } else if (score <= -3) {
             box.style.borderColor = '#d63031';
             box.style.backgroundColor = 'rgba(214, 48, 49, 0.1)';
             title.style.color = '#d63031';
-            title.innerHTML = "GAP DE BAIXA / VENDA 🐻";
-            desc.innerHTML = "EWZ e S&P negativos. O mercado deve abrir pesado.";
+            title.innerHTML = "VIÉS VENDEDOR (BEARISH) 🐻";
+            desc.innerHTML = "Mercado pesado. Aversão a risco e commodities caindo.";
         } else {
             box.style.borderColor = '#f1c40f';
             box.style.backgroundColor = 'rgba(241, 196, 15, 0.1)';
             title.style.color = '#f1c40f';
-            title.innerHTML = "ABERTURA NEUTRA / MISTA ⚖️";
-            desc.innerHTML = "Sinais divergentes entre EWZ e Exterior. Aguarde o preço trabalhar.";
+            title.innerHTML = "MERCADO NEUTRO / TRAVADO ⚖️";
+            desc.innerHTML = "Conflito de fluxo. Aguarde confirmação.";
         }
     }
 
-    // === 3. LÓGICA DO FORMULÁRIO (OVERLAY) ===
+    // === 3. LÓGICA DO FORMULÁRIO ===
     let answers = {};
-
     function next(step, field, val) {
       answers[field] = val;
       const current = document.getElementById('step'+step);
@@ -324,32 +375,22 @@
         }
       }, 400);
     }
-
     function finish() {
       const email = document.getElementById('emailInput').value.trim();
       if(!email.includes('@') || email.length < 5) return alert('Por favor, digite um email válido.');
-      
       answers['Email'] = email;
       document.getElementById('step3').style.display = 'none';
       document.getElementById('loadingScreen').style.display = 'block';
-
       fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers)
-      }).then(() => {
-        mostrarBotaoFinal();
-      }).catch(e => {
-        console.error(e);
-        mostrarBotaoFinal(); 
-      });
+      }).then(() => { mostrarBotaoFinal(); }).catch(e => { console.error(e); mostrarBotaoFinal(); });
     }
-
     function mostrarBotaoFinal() {
       document.getElementById('loadingScreen').style.display = 'none';
       document.getElementById('finalOverlayScreen').style.display = 'block';
     }
-
     function revelarApp() {
       const overlay = document.getElementById('overlay');
       overlay.style.opacity = '0';
@@ -358,7 +399,6 @@
         document.body.style.overflow = 'auto';
       }, 800);
     }
-
     document.getElementById('emailInput').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') finish();
     });
