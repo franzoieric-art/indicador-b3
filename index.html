@@ -40,12 +40,10 @@
       position: relative;
     }
 
-    /* === TÍTULO DE JOIA === */
+    /* === TÍTULO DE JOIA (ESTILO GLOBAL) === */
     .pro-title {
       text-align: center;
-      font-size: 32px;
       font-weight: 900;
-      margin-bottom: 5px; /* Reduzi a margem para colar no subtítulo */
       letter-spacing: -1px;
       text-transform: uppercase;
       background: linear-gradient(90deg, #5a23c8 0%, #ff57b9 25%, #42e6ff 50%, #5a23c8 75%, #240a5e 100%);
@@ -57,17 +55,15 @@
       animation: shine 4s linear infinite;
     }
 
-    /* === NOVO SUBTÍTULO === */
+    /* === SUBTÍTULO TÉCNICO === */
     .pro-subtitle {
       text-align: center;
       font-size: 11px;
-      color: #666; /* Cinza metálico */
+      color: #666;
       text-transform: uppercase;
-      letter-spacing: 2px; /* Espaçamento chique */
+      letter-spacing: 2px;
       font-weight: 600;
-      margin-bottom: 35px;
       border-bottom: 1px solid #222;
-      padding-bottom: 15px; /* Linha sutil separando */
     }
 
     @keyframes shine {
@@ -137,6 +133,8 @@
     .big-input::placeholder { color: #444; font-size: 32px; }
     .btn-finish { margin-top: 40px; background-color: var(--main-color); color: white; font-size: 20px; font-weight: 700; border: none; padding: 18px 40px; width: 100%; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
     .btn-finish:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    
+    /* Tela final e botões */
     .final-screen-overlay { display: none; text-align: center; animation: fadeIn 0.5s; }
     .success-icon { font-size: 60px; margin-bottom: 20px; display: block; }
     .btn-access-app { background: var(--main-color); color: white; border: none; padding: 16px 32px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 30px; width: 100%; box-shadow: 0 4px 15px rgba(90, 35, 200, 0.3); transition: 0.3s; }
@@ -152,8 +150,9 @@
   <div id="app-content">
     <div class="calculator-container">
       
-      <h1 class="pro-title">Indicador B3 Pro</h1>
-      <p class="pro-subtitle">Especialista em Abertura de Mercado</p>
+      <h1 class="pro-title" style="font-size: 32px; margin-bottom: 5px;">Indicador B3 Pro</h1>
+      <p class="pro-subtitle" style="margin-bottom: 35px; padding-bottom: 15px;">Especialista em Abertura de Mercado</p>
+      
       <div class="row-split">
         <div class="col-half">
           <div class="input-group">
@@ -189,7 +188,7 @@
           <div class="input-group">
             <div class="label-row">
               <label>Minério (SGX)</label>
-              <a href="https://br.tradingview.com/symbols/SGX-TIO1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
+              <a href="https://br.tradingview.com/symbols/SGX-FEF1!/" target="_blank" class="link-helper">↗ Ver Cotação</a>
             </div>
             <input type="number" id="inpIron" class="custom-input" placeholder="Ex: 1.50">
           </div>
@@ -274,11 +273,15 @@
       <div class="final-screen-overlay" id="finalOverlayScreen">
         <span class="success-icon">✅</span>
         <h2>Tudo pronto!</h2>
-        <p style="color:#aaa; margin-bottom: 30px; font-size: 16px;">Seu perfil foi configurado. Você já pode acessar a ferramenta oficial do Indicador B3.</p>
+        <p style="color:#aaa; margin-bottom: 30px; font-size: 16px;">Seu perfil foi configurado. Você já pode acessar a ferramenta oficial.</p>
         
-        <div style="background: #111; padding: 20px; border-radius: 12px; border: 1px solid #333;">
-            <h3 style="color: var(--main-color); margin-bottom: 10px;">Indicador B3 v2.0</h3>
-            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Ferramenta exclusiva Rico Plus para leitura de fluxo.</p>
+        <div style="background: #111; padding: 30px 20px; border-radius: 12px; border: 1px solid #333;">
+            <h3 class="pro-title" style="font-size: 24px; margin-bottom: 5px;">
+              INDICADOR B3 PRO
+            </h3>
+            <p class="pro-subtitle" style="font-size: 10px; margin-bottom: 25px; border: none; padding: 0;">
+              ESPECIALISTA EM ABERTURA DE MERCADO
+            </p>
             <button class="btn-access-app" onclick="revelarApp()">ACESSAR AGORA 🚀</button>
         </div>
         
