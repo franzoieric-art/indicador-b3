@@ -148,7 +148,7 @@
           <div class="input-group">
             <div class="label-row">
               <label>DXY (%)</label>
-              <a href="https://br.tradingview.com/symbols/TVC-DXY/" target="_blank" class="link-helper">↗ Ver</a>
+              <a href="https://br.tradingview.com/symbols/TVC-DXY/" target="_blank" class="link-helper">↗ Ver Cotação</a>
             </div>
             <input type="number" id="inpDxy" class="custom-input" placeholder="Ex: 0.02">
           </div>
@@ -157,13 +157,13 @@
         <div class="col-half">
           <div class="input-group">
             <div class="label-row">
-              <label>EWS (ETF Brazil)</label>
-              <a href="https://br.tradingview.com/symbols/AMEX-EWS/" target="_blank" class="link-helper">↗ Ver Pré-Mkt</a>
+              <label>EWZ (ETF Brazil)</label>
+              <a href="https://br.tradingview.com/symbols/AMEX-EWZ/" target="_blank" class="link-helper">↗ Ver Cotação</a>
             </div>
-            <input type="number" id="inpEws" class="custom-input" placeholder="Ex: -1.20">
+            <input type="number" id="inpEwz" class="custom-input" placeholder="Ex: -1.20">
           </div>
         </div>
-        </div>
+      </div>
 
       <button class="btn-analyze" onclick="calcularFluxo()">
         ⚡ Analisar Mercado Agora
@@ -252,15 +252,15 @@
       }
     };
 
-    // === 2. LÓGICA DA CALCULADORA COM EWS ===
+    // === 2. LÓGICA DA CALCULADORA COM EWZ (CORRIGIDO) ===
     function calcularFluxo() {
         const elBrent = document.getElementById('inpBrent');
         const elSp = document.getElementById('inpSp');
         const elVix = document.getElementById('inpVix');
         const elDxy = document.getElementById('inpDxy');
-        const elEws = document.getElementById('inpEws'); // Novo campo
+        const elEwz = document.getElementById('inpEwz'); // Mudou de Ews para Ewz
 
-        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "" || elEws.value === "") {
+        if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "" || elEwz.value === "") {
             alert("⚠️ Atenção: Preencha todos os campos para ter uma análise precisa.");
             return;
         }
@@ -269,13 +269,13 @@
         let sp = parseFloat(elSp.value);
         let vix = parseFloat(elVix.value);
         let dxy = parseFloat(elDxy.value);
-        let ews = parseFloat(elEws.value);
+        let ewz = parseFloat(elEwz.value);
 
         let score = 0;
         
-        // Regras Ajustadas (EWS substitui o peso do dólar na abertura):
+        // Regras Ajustadas (EWZ substitui o peso do dólar na abertura):
         if (sp > 0) score += 2; else score -= 2;   // S&P (Peso 2)
-        if (ews > 0) score += 2; else score -= 2;  // EWS (Peso 2 - Termômetro Brasil)
+        if (ewz > 0) score += 2; else score -= 2;  // EWZ (Peso 2 - Termômetro Brasil)
         if (brent > 0) score += 1; else score -= 1; 
         if (vix < 0) score += 1; else score -= 2; // Medo cai = Bom
         if (dxy < 0) score += 1; else score -= 1; // Dólar mundial cai = Bom
@@ -291,19 +291,19 @@
             box.style.backgroundColor = 'rgba(0, 184, 148, 0.1)';
             title.style.color = '#00b894';
             title.innerHTML = "GAP DE ALTA / COMPRA 🐂";
-            desc.innerHTML = "EWS e S&P positivos indicam forte entrada de fluxo na abertura.";
+            desc.innerHTML = "EWZ e S&P positivos indicam forte entrada de fluxo na abertura.";
         } else if (score <= -2) {
             box.style.borderColor = '#d63031';
             box.style.backgroundColor = 'rgba(214, 48, 49, 0.1)';
             title.style.color = '#d63031';
             title.innerHTML = "GAP DE BAIXA / VENDA 🐻";
-            desc.innerHTML = "EWS e S&P negativos. O mercado deve abrir pesado.";
+            desc.innerHTML = "EWZ e S&P negativos. O mercado deve abrir pesado.";
         } else {
             box.style.borderColor = '#f1c40f';
             box.style.backgroundColor = 'rgba(241, 196, 15, 0.1)';
             title.style.color = '#f1c40f';
             title.innerHTML = "ABERTURA NEUTRA / MISTA ⚖️";
-            desc.innerHTML = "Sinais divergentes entre EWS e Exterior. Aguarde o preço trabalhar.";
+            desc.innerHTML = "Sinais divergentes entre EWZ e Exterior. Aguarde o preço trabalhar.";
         }
     }
 
