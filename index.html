@@ -237,36 +237,41 @@
     // === URL ATUALIZADA QUE VOCÊ FORNECEU ===
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXcYGsfOScQz0e4iCILn38PQq1t4bU-r5yG6bkVze3cUf5L_dQs8psqKF2YcWcPAiJ/exec';
 
-    // === LÓGICA DA CALCULADORA ===
+    // === 1. DETECTOR DE PASSE VIP (A Mágica acontece aqui) ===
+    // Assim que a página carrega, verificamos se veio do e-mail
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      // Se tiver "?acesso=vip" no link, destruímos o formulário
+      if (params.get('acesso') === 'vip') {
+        document.getElementById('overlay').style.display = 'none';
+        document.body.style.overflow = 'auto'; // Destrava a rolagem
+      }
+    };
+
+    // === 2. LÓGICA DA CALCULADORA ===
     function calcularFluxo() {
-        // 1. Pegar os elementos
         const elBrent = document.getElementById('inpBrent');
         const elSp = document.getElementById('inpSp');
         const elVix = document.getElementById('inpVix');
         const elDxy = document.getElementById('inpDxy');
 
-        // 2. Validar se preencheu
         if(elBrent.value === "" || elSp.value === "" || elVix.value === "" || elDxy.value === "") {
             alert("⚠️ Atenção: Preencha todos os campos para ter uma análise precisa.");
             return;
         }
 
-        // 3. Converter para números
         let brent = parseFloat(elBrent.value);
         let sp = parseFloat(elSp.value);
         let vix = parseFloat(elVix.value);
         let dxy = parseFloat(elDxy.value);
 
-        // 4. Calcular Score
         let score = 0;
         
-        // Regras:
-        if (sp > 0) score += 2; else score -= 2;   // S&P
-        if (brent > 0) score += 1; else score -= 1; // Brent
-        if (vix < 0) score += 1; else score -= 2;  // VIX (Inverso)
-        if (dxy < 0) score += 1; else score -= 1;  // DXY (Inverso)
+        if (sp > 0) score += 2; else score -= 2;
+        if (brent > 0) score += 1; else score -= 1;
+        if (vix < 0) score += 1; else score -= 2;
+        if (dxy < 0) score += 1; else score -= 1;
 
-        // 5. Exibir Resultado
         const box = document.getElementById('result-box');
         const title = document.getElementById('result-title');
         const desc = document.getElementById('result-desc');
@@ -294,7 +299,7 @@
         }
     }
 
-    // === LÓGICA DO FORMULÁRIO (OVERLAY) ===
+    // === 3. LÓGICA DO FORMULÁRIO (OVERLAY) ===
     let answers = {};
 
     function next(step, field, val) {
@@ -320,7 +325,6 @@
       document.getElementById('step3').style.display = 'none';
       document.getElementById('loadingScreen').style.display = 'block';
 
-      // Envia os dados para a URL que você atualizou
       fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
